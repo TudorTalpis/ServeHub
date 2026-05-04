@@ -8,7 +8,7 @@ using TWeb.BusinessLayer.Interfaces;
 namespace TWeb.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class ProvidersController : ControllerBase
 {
     private readonly IProviderAction _providerService = new BusinessLogic().ProviderAction();
@@ -88,5 +88,3 @@ public class ProvidersController : ControllerBase
         return Ok(_providerService.GetByIdProviderProfileAction(id));
     }
 }
-
-

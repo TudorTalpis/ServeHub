@@ -8,7 +8,7 @@ using TWeb.BusinessLayer.Interfaces;
 namespace TWeb.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class ReviewsController : ControllerBase
 {
     private readonly IReviewAction _reviewService = new BusinessLogic().ReviewAction();
@@ -26,11 +26,12 @@ public class ReviewsController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public IActionResult Create([FromBody] CreateReviewDto dto)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<ActionResult<ReviewDto>> Create(
+        [FromBody] CreateReviewDto dto,
+        CancellationToken ct)
     {
         var r = _reviewService.CreateReviewAction(dto);
         return CreatedAtAction(nameof(GetAll), r);
     }
 }
-
-

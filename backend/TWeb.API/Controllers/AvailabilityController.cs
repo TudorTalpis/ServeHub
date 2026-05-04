@@ -27,7 +27,12 @@ public class AvailabilityController : ControllerBase
     [Authorize]
     [HttpPut("provider/{providerId}")]
     public IActionResult SetForProvider(string providerId, [FromBody] List<AvailabilityDto> slots) =>
+<<<<<<< Ion
+        Ok(_availabilityService.SetForProvider(providerId, slots));
+}
+=======
         Ok(_availabilityService.SetForProviderAvailabilityAction(providerId, slots));
 }
 
 
+>>>>>>> main
