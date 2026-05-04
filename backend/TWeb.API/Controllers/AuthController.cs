@@ -5,38 +5,67 @@ using TWeb.BusinessLayer.Interfaces;
 namespace TWeb.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class AuthController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IUserService userService)
+    public AuthController(
+        IUserService userService,
+        ILogger<AuthController> logger)
     {
         _userService = userService;
+        _logger = logger;
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequestDto dto)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<LoginResponseDto>> Login(
+        [FromBody] LoginRequestDto dto,
+        CancellationToken ct)
     {
-        var result = _userService.Login(dto);
-        if (result == null) return Unauthorized(new { message = "Invalid email or password" });
+        var result =  _userService.Login(dto);
+
+        if (result == null)
+        {
+            _logger.LogWarning("Failed login attempt for email {Email}", dto.Email);
+
+            return Unauthorized(new ProblemDetails
+            {
+                Title = "Authentication failed",
+                Detail = "Invalid email or password",
+                Status = StatusCodes.Status401Unauthorized
+            });
+        }
+
         return Ok(result);
     }
 
     [HttpPost("signup")]
-    public IActionResult SignUp([FromBody] SignUpRequestDto dto)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<LoginResponseDto>> SignUp(
+        [FromBody] SignUpRequestDto dto,
+        CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
-            return BadRequest(new { message = "Email and password are required" });
+        // Model validation is automatically handled by [ApiController]
+        
+        var result = _userService.SignUp(dto);
 
-        var user = _userService.SignUp(dto);
-        return Ok(new LoginResponseDto
+        if (result == null)
         {
-            Token = $"mock-jwt-{user.Id}-{DateTime.UtcNow.Ticks}",
-            UserId = user.Id,
-            Role = user.Role,
-            Name = user.Name,
-            Email = user.Email
-        });
+            _logger.LogWarning("Signup failed for email {Email}", dto.Email);
+
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Signup failed",
+                Detail = "User could not be created",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        return Created(string.Empty, result);
     }
 }
