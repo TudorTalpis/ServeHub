@@ -8,7 +8,7 @@ using TWeb.BusinessLayer.Interfaces;
 namespace TWeb.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class CategoriesController : ControllerBase
 {
     private readonly ICategoryAction _categoryService = new BusinessLogic().CategoryAction();
@@ -21,7 +21,9 @@ public class CategoriesController : ControllerBase
     public IActionResult GetAll() => Ok(_categoryService.GetAllCategoryAction());
 
     [HttpGet("{id}")]
-    public IActionResult GetById(string id)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CategoryDto>> GetById(string id, CancellationToken ct)
     {
         var cat = _categoryService.GetByIdCategoryAction(id);
         if (cat == null) return NotFound(new { message = $"Category {id} not found" });
@@ -30,7 +32,11 @@ public class CategoriesController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public IActionResult Create([FromBody] CreateCategoryDto dto)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<CategoryDto>> Create(
+        [FromBody] CreateCategoryDto dto,
+        CancellationToken ct)
     {
         var cat = _categoryService.CreateCategoryAction(dto);
         return CreatedAtAction(nameof(GetById), new { id = cat.Id }, cat);
@@ -38,7 +44,12 @@ public class CategoriesController : ControllerBase
 
     [Authorize]
     [HttpPut("{id}")]
-    public IActionResult Update(string id, [FromBody] UpdateCategoryDto dto)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CategoryDto>> Update(
+        string id,
+        [FromBody] UpdateCategoryDto dto,
+        CancellationToken ct)
     {
         var cat = _categoryService.UpdateCategoryAction(id, dto);
         if (cat == null) return NotFound(new { message = $"Category {id} not found" });
@@ -47,7 +58,9 @@ public class CategoriesController : ControllerBase
 
     [Authorize]
     [HttpDelete("{id}")]
-    public IActionResult Delete(string id)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(string id, CancellationToken ct)
     {
         if (!_categoryService.DeleteCategoryAction(id))
             return NotFound(new { message = $"Category {id} not found" });

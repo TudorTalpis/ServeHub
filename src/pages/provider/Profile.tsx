@@ -64,7 +64,7 @@ const buildAvailabilityMap = (availability: Availability[], providerId: string) 
 };
 
 const ProviderProfilePage = () => {
-  const { state, currentProvider, dispatch } = useAppStore();
+  const {state, currentProvider, dispatch } = useAppStore();
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
     name: currentProvider?.name || "",

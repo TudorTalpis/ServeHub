@@ -8,7 +8,7 @@ using TWeb.BusinessLayer.Interfaces;
 namespace TWeb.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class ServicesController : ControllerBase
 {
     private readonly IServiceAction _serviceService = new BusinessLogic().ServiceAction();
@@ -21,7 +21,9 @@ public class ServicesController : ControllerBase
     public IActionResult GetAll() => Ok(_serviceService.GetAllServiceAction());
 
     [HttpGet("{id}")]
-    public IActionResult GetById(string id)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ServiceDto>> GetById(string id, CancellationToken ct)
     {
         var s = _serviceService.GetByIdServiceAction(id);
         if (s == null) return NotFound(new { message = $"Service {id} not found" });
@@ -34,7 +36,10 @@ public class ServicesController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public IActionResult Create([FromBody] CreateServiceDto dto)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<ActionResult<ServiceDto>> Create(
+        [FromBody] CreateServiceDto dto,
+        CancellationToken ct)
     {
         var s = _serviceService.CreateServiceAction(dto);
         return CreatedAtAction(nameof(GetById), new { id = s.Id }, s);
@@ -42,7 +47,12 @@ public class ServicesController : ControllerBase
 
     [Authorize]
     [HttpPut("{id}")]
-    public IActionResult Update(string id, [FromBody] UpdateServiceDto dto)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ServiceDto>> Update(
+        string id,
+        [FromBody] UpdateServiceDto dto,
+        CancellationToken ct)
     {
         var s = _serviceService.UpdateServiceAction(id, dto);
         if (s == null) return NotFound(new { message = $"Service {id} not found" });
@@ -51,12 +61,12 @@ public class ServicesController : ControllerBase
 
     [Authorize]
     [HttpDelete("{id}")]
-    public IActionResult Delete(string id)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(string id, CancellationToken ct)
     {
         if (!_serviceService.DeleteServiceAction(id))
             return NotFound(new { message = $"Service {id} not found" });
         return NoContent();
     }
 }
-
-

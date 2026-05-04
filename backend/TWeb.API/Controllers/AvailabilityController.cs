@@ -29,5 +29,3 @@ public class AvailabilityController : ControllerBase
     public IActionResult SetForProvider(string providerId, [FromBody] List<AvailabilityDto> slots) =>
         Ok(_availabilityService.SetForProviderAvailabilityAction(providerId, slots));
 }
-
-

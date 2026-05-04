@@ -10,7 +10,7 @@ using TWeb.Domain.Models;
 namespace TWeb.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class AuthController : ControllerBase
 {
     private readonly IUserAction _userService;
@@ -23,7 +23,11 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequestDto dto)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<LoginResponseDto>> Login(
+        [FromBody] LoginRequestDto dto,
+        CancellationToken ct)
     {
         var user = _userService.UserLoginAction(dto);
         if (user == null) return Unauthorized(new { message = "Invalid email or password" });
@@ -39,11 +43,13 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("signup")]
-    public IActionResult SignUp([FromBody] SignUpRequestDto dto)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<LoginResponseDto>> SignUp(
+        [FromBody] SignUpRequestDto dto,
+        CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
-            return BadRequest(new { message = "Email and password are required" });
-
+        // Model validation is automatically handled by [ApiController]
         var user = _userService.UserSignUpAction(dto);
         return Ok(new LoginResponseDto
         {
