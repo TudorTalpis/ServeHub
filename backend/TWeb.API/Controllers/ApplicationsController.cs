@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
@@ -27,6 +28,7 @@ public class ApplicationsController : ControllerBase
         return Ok(a);
     }
 
+    [Authorize]
     [HttpPost]
     public IActionResult Create([FromBody] CreateApplicationDto dto)
     {
@@ -34,6 +36,7 @@ public class ApplicationsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = a.Id }, a);
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public IActionResult Update(string id, [FromBody] UpdateApplicationDto dto)
     {

@@ -9,8 +9,7 @@ import { CategoryCard } from "@/components/CategoryCard";
 const Index = () => {
   const { state, hasRole } = useAppStore();
   const { t } = useI18n();
-  const providerIdsWithServices = new Set(state.services.map((service) => service.providerId));
-  const activeProviders = state.providerProfiles.filter((p) => !p.blocked && providerIdsWithServices.has(p.id));
+  const activeProviders = state.providerProfiles.filter((p) => !p.blocked);
   const sponsored = activeProviders.filter((p) => p.sponsored);
   const featured = activeProviders.filter((p) => p.featured);
 

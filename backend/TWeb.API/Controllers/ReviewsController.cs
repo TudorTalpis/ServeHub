@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
@@ -10,7 +11,7 @@ namespace TWeb.API.Controllers;
 [Route("api/[controller]")]
 public class ReviewsController : ControllerBase
 {
-    private readonly IServiceAction _reviewService = new BusinessLogic().ServiceAction();
+    private readonly IReviewAction _reviewService = new BusinessLogic().ReviewAction();
 
     public ReviewsController()
     {
@@ -23,6 +24,7 @@ public class ReviewsController : ControllerBase
     public IActionResult GetByProviderId(string providerId) =>
         Ok(_reviewService.GetByProviderIdReviewAction(providerId));
 
+    [Authorize]
     [HttpPost]
     public IActionResult Create([FromBody] CreateReviewDto dto)
     {

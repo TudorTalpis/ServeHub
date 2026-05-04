@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
@@ -31,6 +32,7 @@ public class ServicesController : ControllerBase
     public IActionResult GetByProviderId(string providerId) =>
         Ok(_serviceService.GetByProviderIdServiceAction(providerId));
 
+    [Authorize]
     [HttpPost]
     public IActionResult Create([FromBody] CreateServiceDto dto)
     {
@@ -38,6 +40,7 @@ public class ServicesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = s.Id }, s);
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public IActionResult Update(string id, [FromBody] UpdateServiceDto dto)
     {
@@ -46,6 +49,7 @@ public class ServicesController : ControllerBase
         return Ok(s);
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public IActionResult Delete(string id)
     {

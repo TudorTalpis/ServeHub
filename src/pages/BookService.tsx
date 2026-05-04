@@ -9,8 +9,8 @@ import { useI18n } from "@/store/useI18n";
 import { generateSlots, formatDate, isHourOccupied, type TimeSlot } from "@/lib/booking";
 import { getEffectiveServiceBufferMinutes } from "@/lib/services";
 import { convertAndFormat } from "@/lib/currency";
-import { generateId } from "@/lib/storage";
 import { toLocalDateKey } from "@/lib/date";
+import { bookingsApi, notificationsApi } from "@/api";
 import {
   Dialog,
   DialogContent,
@@ -75,7 +75,7 @@ const BookService = () => {
   const [guestErrors, setGuestErrors] = useState<Record<string, string>>({});
 
   const isGuest = !currentUser;
-  const bookingUserId = isGuest ? "guest-" + generateId() : currentUser.id;
+  const bookingUserId = isGuest ? "guest" : currentUser.id;
   const serviceBufferMinutes = getEffectiveServiceBufferMinutes(service, provider);
 
   const slots = selectedDate
@@ -121,7 +121,7 @@ const BookService = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedDate || !selectedSlot) return;
     if (isGuest && !validateGuest()) return;
 
@@ -152,62 +152,47 @@ const BookService = () => {
 
     const finalUserId = isGuest ? bookingUserId : currentUser.id;
     const finalUserName = isGuest ? guestName.trim() : currentUser.name;
-    const autoConfirm = provider.autoConfirm;
-    const bookingStatus = autoConfirm ? "CONFIRMED" : "PENDING";
-    setBookingWasAutoConfirmed(autoConfirm);
 
-    const bookingId = generateId();
-    dispatch({
-      type: "ADD_BOOKING",
-      payload: {
-        id: bookingId,
+    try {
+      const booking = await bookingsApi.create({
         userId: finalUserId,
         providerId: provider.id,
         serviceId: service.id,
         date: selectedDate,
         startTime: selectedSlot.startTime,
         endTime: selectedSlot.endTime,
-        status: bookingStatus,
-        createdAt: new Date().toISOString(),
         userName: finalUserName,
-        userPhone: isGuest ? guestPhone.trim() : currentUser.phone || undefined,
-      },
-    });
+        userPhone: isGuest ? guestPhone.trim() : (currentUser?.phone || undefined),
+      });
+      dispatch({ type: "ADD_BOOKING", payload: booking });
+      setBookingWasAutoConfirmed(booking.status === "CONFIRMED");
 
-    if (!isGuest) {
-      dispatch({
-        type: "ADD_NOTIFICATION",
-        payload: {
-          id: generateId(),
+      if (!isGuest) {
+        notificationsApi.create({
           userId: currentUser.id,
           type: "booking_success",
-          title: autoConfirm ? "Booking Confirmed!" : "Booking Submitted!",
-          message: autoConfirm
+          title: booking.status === "CONFIRMED" ? "Booking Confirmed!" : "Booking Submitted!",
+          message: booking.status === "CONFIRMED"
             ? `Your ${service.title} with ${provider.name} on ${formatDate(selectedDate)} at ${selectedSlot.startTime} is confirmed.`
             : `Your ${service.title} with ${provider.name} on ${formatDate(selectedDate)} at ${selectedSlot.startTime} is pending confirmation by the provider.`,
-          read: false,
-          createdAt: new Date().toISOString(),
-        },
-      });
-    }
+        }).then(n => dispatch({ type: "ADD_NOTIFICATION", payload: n })).catch(() => {});
+      }
 
-    dispatch({
-      type: "ADD_NOTIFICATION",
-      payload: {
-        id: generateId(),
+      notificationsApi.create({
         userId: provider.userId,
         type: "new_booking",
         title: "New Booking Request",
         message: `${finalUserName} wants to book ${service.title} on ${formatDate(selectedDate)} at ${selectedSlot.startTime}.${isGuest ? ` (Guest: ${guestEmail.trim()}, ${guestPhone.trim()})` : ""}`,
-        read: false,
-        createdAt: new Date().toISOString(),
-        linkTo: autoConfirm ? "/provider/schedule" : "/provider/bookings",
-      },
-    });
+        linkTo: booking.status === "CONFIRMED" ? "/provider/schedule" : "/provider/bookings",
+      }).then(n => dispatch({ type: "ADD_NOTIFICATION", payload: n })).catch(() => {});
 
-    setShowConfirmModal(false);
-    setSlotError("");
-    setConfirmed(true);
+      setShowConfirmModal(false);
+      setSlotError("");
+      setConfirmed(true);
+    } catch {
+      setSlotError("Failed to create booking. Please try again.");
+      setShowConfirmModal(false);
+    }
   };
 
   // Calendar helpers

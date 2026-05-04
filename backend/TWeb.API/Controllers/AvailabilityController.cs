@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
@@ -23,6 +24,7 @@ public class AvailabilityController : ControllerBase
     public IActionResult GetByProviderId(string providerId) =>
         Ok(_availabilityService.GetByProviderIdAvailabilityAction(providerId));
 
+    [Authorize]
     [HttpPut("provider/{providerId}")]
     public IActionResult SetForProvider(string providerId, [FromBody] List<AvailabilityDto> slots) =>
         Ok(_availabilityService.SetForProviderAvailabilityAction(providerId, slots));

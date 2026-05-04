@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, MapPin, Phone, Star, Image as ImageIcon, ExternalLink } from "lucide-react";
-import { generateId } from "@/lib/storage";
 import { getCategoryNames } from "@/lib/categories";
+import { applicationsApi, providersApi, notificationsApi } from "@/api";
 
 const ApplicationDetail = () => {
   const { applicationId } = useParams();
@@ -39,10 +39,10 @@ const ApplicationDetail = () => {
     );
   }
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     // Build the new provider profile
     const newProviderProfile = {
-      id: generateId(),
+      id: "",
       userId: app.userId,
       name: app.name,
       slug: app.slug,
@@ -62,6 +62,12 @@ const ApplicationDetail = () => {
       sponsored: false,
       blocked: false,
     };
+
+    // Call API to approve application and create provider profile
+    const [updatedApp, createdProvider] = await Promise.all([
+      applicationsApi.update(app.id, { status: "APPROVED" }),
+      providersApi.create(newProviderProfile),
+    ]);
 
     // Update application status
     const updatedApplications = state.applications.map((a) =>
@@ -86,44 +92,50 @@ const ApplicationDetail = () => {
         ...state,
         session: updatedSession,
         applications: updatedApplications,
-        providerProfiles: [...state.providerProfiles, newProviderProfile],
+        providerProfiles: [...state.providerProfiles, createdProvider],
         users: updatedUsers,
       },
     });
 
     // Notify the applicant
+    const notifPayload = {
+      userId: app.userId,
+      type: "application_approved" as const,
+      title: "Application Approved!",
+      message: `Your provider application "${app.name}" has been approved.`,
+      linkTo: "/dashboard",
+    };
+    const createdNotif = await notificationsApi.create(notifPayload);
     dispatch({
       type: "ADD_NOTIFICATION",
       payload: {
-        id: generateId(),
-        userId: app.userId,
-        type: "application_approved",
-        title: "Application Approved!",
-        message: `Your provider application "${app.name}" has been approved.`,
+        ...createdNotif,
         read: false,
-        createdAt: new Date().toISOString(),
-        linkTo: "/dashboard",
       },
     });
     navigate("/admin/applications");
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     const trimmedReason = reason.trim();
     if (!trimmedReason) return;
 
+    await applicationsApi.update(app.id, { status: "REJECTED", rejectReason: trimmedReason });
     dispatch({ type: "UPDATE_APPLICATION", payload: { id: app.id, status: "REJECTED", rejectReason: trimmedReason } });
+
+    const notifPayload = {
+      userId: app.userId,
+      type: "application_rejected" as const,
+      title: "Application Rejected",
+      message: `Your provider application "${app.name}" was rejected. Reason: ${trimmedReason}`,
+      linkTo: "/become-provider",
+    };
+    const createdNotif = await notificationsApi.create(notifPayload);
     dispatch({
       type: "ADD_NOTIFICATION",
       payload: {
-        id: generateId(),
-        userId: app.userId,
-        type: "application_rejected",
-        title: "Application Rejected",
-        message: `Your provider application "${app.name}" was rejected. Reason: ${trimmedReason}`,
+        ...createdNotif,
         read: false,
-        createdAt: new Date().toISOString(),
-        linkTo: "/become-provider",
       },
     });
     navigate("/admin/applications");

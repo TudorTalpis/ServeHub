@@ -37,6 +37,11 @@ import {
  * Use this to initialize the app state from the API instead of localStorage.
  */
 export async function fetchAppStateFromAPI(): Promise<Partial<AppState>> {
+  const catchEmpty = (label: string) => (err: unknown) => {
+    console.warn(`[API] Failed to load ${label}:`, err);
+    return [];
+  };
+
   const [
     categories,
     providers,
@@ -49,16 +54,16 @@ export async function fetchAppStateFromAPI(): Promise<Partial<AppState>> {
     notifications,
     users,
   ] = await Promise.all([
-    categoriesApi.getAll().catch(() => []),
-    providersApi.getAll().catch(() => []),
-    servicesApi.getAll().catch(() => []),
-    availabilityApi.getAll().catch(() => []),
-    timeOffApi.getAll().catch(() => []),
-    bookingsApi.getAll().catch(() => []),
-    applicationsApi.getAll().catch(() => []),
-    reviewsApi.getAll().catch(() => []),
-    notificationsApi.getAll().catch(() => []),
-    usersApi.getAll().catch(() => []),
+    categoriesApi.getAll().catch(catchEmpty("categories")),
+    providersApi.getAll().catch(catchEmpty("providers")),
+    servicesApi.getAll().catch(catchEmpty("services")),
+    availabilityApi.getAll().catch(catchEmpty("availability")),
+    timeOffApi.getAll().catch(catchEmpty("timeoff")),
+    bookingsApi.getAll().catch(catchEmpty("bookings")),
+    applicationsApi.getAll().catch(catchEmpty("applications")),
+    reviewsApi.getAll().catch(catchEmpty("reviews")),
+    notificationsApi.getAll().catch(catchEmpty("notifications")),
+    usersApi.getAll().catch(catchEmpty("users")),
   ]);
 
   return {

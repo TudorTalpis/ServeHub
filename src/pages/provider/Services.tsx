@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { servicesApi, providersApi } from "@/api";
 import { useAppStore } from "@/store/AppContext";
 import { generateId } from "@/lib/storage";
 import { getEffectiveServiceBufferMinutes, getProviderDefaultBufferMinutes } from "@/lib/services";
@@ -99,7 +100,7 @@ const ProviderServices = () => {
     setAdding(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!currentProvider) return;
     if (!form.title.trim() || !form.price || !form.duration) {
       setFormError("Title, price, and duration are required.");
@@ -132,22 +133,36 @@ const ProviderServices = () => {
     };
 
     if (editing) {
-      dispatch({ type: "UPDATE_SERVICE", payload: { id: editing.id, ...payload } });
+      try {
+        const updated = await servicesApi.update(editing.id, payload);
+        dispatch({ type: "UPDATE_SERVICE", payload: updated });
+      } catch {
+        dispatch({ type: "UPDATE_SERVICE", payload: { id: editing.id, ...payload } });
+      }
     } else {
       const primaryCategoryId = currentProvider.categoryIds[0] ?? "";
       if (!primaryCategoryId) {
         setFormError("At least one approved category is required before adding services.");
         return;
       }
-      dispatch({
-        type: "ADD_SERVICE",
-        payload: {
-          id: generateId(),
+      try {
+        const created = await servicesApi.create({
           providerId: currentProvider.id,
           categoryId: primaryCategoryId,
           ...payload,
-        },
-      });
+        });
+        dispatch({ type: "ADD_SERVICE", payload: created });
+      } catch {
+        dispatch({
+          type: "ADD_SERVICE",
+          payload: {
+            id: generateId(),
+            providerId: currentProvider.id,
+            categoryId: primaryCategoryId,
+            ...payload,
+          },
+        });
+      }
     }
 
     resetForm();
@@ -167,7 +182,7 @@ const ProviderServices = () => {
     });
   };
 
-  const handleSaveSettings = () => {
+  const handleSaveSettings = async () => {
     if (!currentProvider) return;
     const parsedDefaultBuffer = Number(settingsForm.defaultBufferMinutes);
     if (!Number.isFinite(parsedDefaultBuffer) || parsedDefaultBuffer < 0) {
@@ -175,14 +190,20 @@ const ProviderServices = () => {
       return;
     }
 
-    dispatch({
-      type: "UPDATE_PROVIDER_PROFILE",
-      payload: {
-        id: currentProvider.id,
-        autoConfirm: settingsForm.autoConfirm,
-        defaultServiceBufferMinutes: Math.max(0, parsedDefaultBuffer),
-      },
-    });
+    const updatedFields = {
+      autoConfirm: settingsForm.autoConfirm,
+      defaultServiceBufferMinutes: Math.max(0, parsedDefaultBuffer),
+    };
+
+    try {
+      const updated = await providersApi.update(currentProvider.id, { ...currentProvider, ...updatedFields });
+      dispatch({ type: "UPDATE_PROVIDER_PROFILE", payload: updated });
+    } catch {
+      dispatch({
+        type: "UPDATE_PROVIDER_PROFILE",
+        payload: { id: currentProvider.id, ...updatedFields },
+      });
+    }
 
     setSettingsSaved(true);
     setSettingsError("");
@@ -402,8 +423,13 @@ const ProviderServices = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
+              onClick={async () => {
                 if (!serviceToDelete) return;
+                try {
+                  await servicesApi.delete(serviceToDelete.id);
+                } catch {
+                  // proceed with local delete regardless
+                }
                 dispatch({ type: "DELETE_SERVICE", payload: serviceToDelete.id });
                 setServiceToDelete(null);
               }}

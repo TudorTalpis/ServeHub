@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
@@ -10,7 +11,7 @@ namespace TWeb.API.Controllers;
 [Route("api/[controller]")]
 public class CategoriesController : ControllerBase
 {
-    private readonly IServiceAction _categoryService = new BusinessLogic().ServiceAction();
+    private readonly ICategoryAction _categoryService = new BusinessLogic().CategoryAction();
 
     public CategoriesController()
     {
@@ -27,6 +28,7 @@ public class CategoriesController : ControllerBase
         return Ok(cat);
     }
 
+    [Authorize]
     [HttpPost]
     public IActionResult Create([FromBody] CreateCategoryDto dto)
     {
@@ -34,6 +36,7 @@ public class CategoriesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = cat.Id }, cat);
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public IActionResult Update(string id, [FromBody] UpdateCategoryDto dto)
     {
@@ -42,6 +45,7 @@ public class CategoriesController : ControllerBase
         return Ok(cat);
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public IActionResult Delete(string id)
     {

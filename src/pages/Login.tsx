@@ -54,30 +54,12 @@ const Login = (): JSX.Element => {
         email: response.email,
       });
 
-      // Add user to state if not already present (newly signed up users)
-      const existingUser = state.users.find((u) => u.id === response.userId);
-      if (!existingUser) {
-        dispatch({
-          type: "ADD_USER",
-          payload: {
-            id: response.userId,
-            name: response.name,
-            email: response.email,
-            phone: "",
-            password: "",
-            role: response.role as AppUser["role"],
-            isDemo: response.isDemo,
-          },
-        });
-      }
-
       // Update app state
       dispatch({ type: "LOGIN", payload: { userId: response.userId } });
       toast({ title: `Welcome back, ${response.name}!` });
 
       // Redirect to role-appropriate dashboard
-      const providerProfile = state.providerProfiles.find((p) => p.userId === response.userId);
-      if (response.role === "PROVIDER" && providerProfile) {
+      if (response.role === "PROVIDER") {
         navigate("/provider/dashboard");
       } else if (response.role === "ADMIN") {
         navigate("/admin/dashboard");
@@ -190,9 +172,10 @@ const Login = (): JSX.Element => {
                   />
                   <button
                     type="button"
+                    data-no-scale
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>

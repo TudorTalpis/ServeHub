@@ -7,8 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit2, Trash2, Package, Search } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
-import { generateId } from "@/lib/storage";
 import { normalizeCategory } from "@/lib/categories";
+import { categoriesApi } from "@/api";
 import type { Category } from "@/types";
 
 const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
@@ -53,7 +53,7 @@ const AdminCategories = () => {
       cat.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!newCategory.name?.trim()) return;
 
     const normalized = normalizeCategory(newCategory.name);
@@ -64,21 +64,21 @@ const AdminCategories = () => {
       return;
     }
 
-    const category: Category = {
-      id: generateId(),
+    const created = await categoriesApi.create({
       name: newCategory.name.trim(),
       description: newCategory.description?.trim() || "",
       icon: newCategory.icon || "Package",
       color: newCategory.color || "blue",
-    };
+    });
 
-    dispatch({ type: "ADD_CATEGORY", payload: category });
+    dispatch({ type: "ADD_CATEGORY", payload: created });
     setNewCategory({ name: "", description: "", icon: "Package", color: "blue" });
     setShowCreateForm(false);
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string) => {
     if (confirm(`Sigur vrei să ștergi categoria "${name}"?`)) {
+      await categoriesApi.delete(id);
       dispatch({ type: "DELETE_CATEGORY", payload: id });
     }
   };

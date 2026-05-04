@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { usersApi } from "@/api";
 import { Globe, Save, Lock, Briefcase } from "lucide-react";
 
 const SettingsPage = () => {
@@ -16,8 +17,9 @@ const SettingsPage = () => {
 
   const [name, setName] = useState(currentUser?.name ?? "");
   const [email, setEmail] = useState(currentUser?.email ?? "");
-  const [password, setPassword] = useState("");
   const [phone, setPhone] = useState(currentUser?.phone ?? "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   if (!currentUser) {
     return (
@@ -27,19 +29,38 @@ const SettingsPage = () => {
     );
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim() || !email.trim()) {
       toast({ title: "Please complete name and email." });
       return;
     }
 
-    // Update user in state
+    const updated = await usersApi.update(currentUser.id, { name: name.trim(), email: email.trim() });
     const updatedUsers = state.users.map((u) =>
-      u.id === currentUser.id ? { ...u, name: name.trim(), email: email.trim() } : u,
+      u.id === currentUser.id ? { ...u, ...updated } : u,
     );
     dispatch({ type: "SET_STATE", payload: { ...state, users: updatedUsers } });
 
     toast({ title: t("settings.saved") });
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword) {
+      toast({ title: "Please fill in both password fields." });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "New password must be at least 6 characters." });
+      return;
+    }
+    try {
+      await usersApi.changePassword(currentUser.id, { currentPassword, newPassword });
+      setCurrentPassword("");
+      setNewPassword("");
+      toast({ title: "Password updated successfully." });
+    } catch {
+      toast({ title: "Current password is incorrect.", variant: "destructive" });
+    }
   };
 
   return (
@@ -91,28 +112,41 @@ const SettingsPage = () => {
               className="max-w-md opacity-60"
             />
           </div>
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">{t("settings.password")}</Label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              disabled
-              className="max-w-md opacity-60"
-            />
-          </div>
           <Button onClick={handleSave} className="gap-1.5 rounded-xl">
             <Save className="h-3.5 w-3.5" /> {t("settings.save")}
           </Button>
         </div>
       </div>
 
-      {/* Password & phone note */}
-      <div className="rounded-2xl border border-dashed bg-secondary/30 p-6 mb-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Lock className="h-4 w-4" />
-          {t("settings.passwordNote")}
+      {/* Change Password section */}
+      <div className="rounded-2xl border bg-card p-6 shadow-card mb-6">
+        <h2 className="font-semibold text-sm flex items-center gap-2 mb-4">
+          <Lock className="h-4 w-4 text-primary" /> {t("settings.password")}
+        </h2>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Current password</Label>
+            <Input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="••••••••"
+              className="max-w-md"
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">New password</Label>
+            <Input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="••••••••"
+              className="max-w-md"
+            />
+          </div>
+          <Button onClick={handleChangePassword} className="gap-1.5 rounded-xl">
+            <Lock className="h-3.5 w-3.5" /> Update password
+          </Button>
         </div>
       </div>
 

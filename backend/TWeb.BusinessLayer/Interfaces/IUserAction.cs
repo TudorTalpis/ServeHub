@@ -1,5 +1,4 @@
 using TWeb.Domain.Models;
-using TWeb.Domain.Models;
 
 namespace TWeb.BusinessLayer.Interfaces;
 
@@ -7,9 +6,10 @@ public interface IUserAction
 {
     List<UserDto> GetAllUserAction();
     UserDto? GetUserByIdAction(string id);
-    LoginResponseDto? UserLoginAction(LoginRequestDto dto);
+    UserDto? UserLoginAction(LoginRequestDto dto);
     UserDto UserSignUpAction(SignUpRequestDto dto);
     UserDto? UpdateUserAction(string id, UpdateUserDto dto);
+    bool ChangePasswordAction(string id, ChangePasswordDto dto);
 
     // Notification
     List<NotificationDto> GetAllNotificationAction();

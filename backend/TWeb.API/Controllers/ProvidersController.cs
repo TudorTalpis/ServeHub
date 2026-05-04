@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
@@ -43,6 +44,7 @@ public class ProvidersController : ControllerBase
         return Ok(p);
     }
 
+    [Authorize]
     [HttpPost]
     public IActionResult Create([FromBody] ProviderProfileDto dto)
     {
@@ -50,6 +52,7 @@ public class ProvidersController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = p.Id }, p);
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public IActionResult Update(string id, [FromBody] UpdateProviderProfileDto dto)
     {
@@ -58,6 +61,7 @@ public class ProvidersController : ControllerBase
         return Ok(p);
     }
 
+    [Authorize]
     [HttpPatch("{id}/featured")]
     public IActionResult ToggleFeatured(string id)
     {
@@ -66,6 +70,7 @@ public class ProvidersController : ControllerBase
         return Ok(_providerService.GetByIdProviderProfileAction(id));
     }
 
+    [Authorize]
     [HttpPatch("{id}/sponsored")]
     public IActionResult ToggleSponsored(string id)
     {
@@ -74,6 +79,7 @@ public class ProvidersController : ControllerBase
         return Ok(_providerService.GetByIdProviderProfileAction(id));
     }
 
+    [Authorize]
     [HttpPatch("{id}/blocked")]
     public IActionResult ToggleBlocked(string id)
     {

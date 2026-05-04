@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CategoryMultiSelect } from "@/components/CategoryMultiSelect";
+import { providersApi, availabilityApi, timeOffApi } from "@/api";
 import { useAppStore } from "@/store/AppContext";
 import {
   Check,
@@ -210,22 +211,33 @@ const ProviderProfilePage = () => {
     }));
   };
 
-  const handleAddTimeoff = () => {
+  const handleAddTimeoff = async () => {
     if (!currentProvider) return;
     if (!timeoffForm.date || !timeoffForm.startTime || !timeoffForm.endTime) return;
     const startTime = timeoffForm.allDay ? "00:00" : timeoffForm.startTime;
     const endTime = timeoffForm.allDay ? "23:59" : timeoffForm.endTime;
-    dispatch({
-      type: "ADD_TIMEOFF",
-      payload: {
-        id: generateId(),
+    try {
+      const created = await timeOffApi.create({
         providerId: currentProvider.id,
         date: timeoffForm.date,
         startTime,
         endTime,
         reason: timeoffForm.reason.trim() || undefined,
-      },
-    });
+      });
+      dispatch({ type: "ADD_TIMEOFF", payload: created });
+    } catch {
+      dispatch({
+        type: "ADD_TIMEOFF",
+        payload: {
+          id: generateId(),
+          providerId: currentProvider.id,
+          date: timeoffForm.date,
+          startTime,
+          endTime,
+          reason: timeoffForm.reason.trim() || undefined,
+        },
+      });
+    }
     setTimeoffForm({
       date: format(new Date(), "yyyy-MM-dd"),
       startTime: "09:00",
@@ -235,15 +247,25 @@ const ProviderProfilePage = () => {
     });
   };
 
-  const handleDeleteTimeoff = (timeoffId: string) => {
+  const handleDeleteTimeoff = async (timeoffId: string) => {
+    try {
+      await timeOffApi.delete(timeoffId);
+    } catch {
+      // proceed with local delete regardless
+    }
     dispatch({ type: "DELETE_TIMEOFF", payload: timeoffId });
   };
 
-  const saveSchedule = () => {
+  const saveSchedule = async () => {
     const updatedAvailability = Object.values(availabilityByDay).flat();
     const nextAvailability = state.availability
       .filter((entry) => entry.providerId !== currentProvider.id)
       .concat(updatedAvailability);
+    try {
+      await availabilityApi.setForProvider(currentProvider.id, updatedAvailability);
+    } catch {
+      // proceed with local update regardless
+    }
     dispatch({ type: "SET_AVAILABILITY", payload: nextAvailability });
   };
 
@@ -255,7 +277,7 @@ const ProviderProfilePage = () => {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (slugTaken) return;
     if (form.categoryIds.length === 0 && form.pendingCategoryNames.length === 0) {
@@ -268,7 +290,12 @@ const ProviderProfilePage = () => {
     );
     const newlyProposed = form.pendingCategoryNames.filter((name) => !existingPending.has(normalizeCategory(name)));
 
-    dispatch({ type: "UPDATE_PROVIDER_PROFILE", payload: { id: currentProvider.id, ...form } });
+    try {
+      const updated = await providersApi.update(currentProvider.id, { ...currentProvider, ...form });
+      dispatch({ type: "UPDATE_PROVIDER_PROFILE", payload: updated });
+    } catch {
+      dispatch({ type: "UPDATE_PROVIDER_PROFILE", payload: { id: currentProvider.id, ...form } });
+    }
 
     if (newlyProposed.length > 0) {
       state.users

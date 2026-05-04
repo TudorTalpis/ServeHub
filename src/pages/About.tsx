@@ -32,13 +32,13 @@ const About = () => {
         <div className={`${CONTAINER} grid items-center gap-8 lg:grid-cols-2`}>
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <Sparkles className="h-3.5 w-3.5" /> About ServeHub
+              <Sparkles className="h-3.5 w-3.5" /> About PageON
             </div>
             <h1 className="font-display text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
               A marketplace where clients and providers connect with confidence
             </h1>
             <p className="mt-4 max-w-prose text-sm text-muted-foreground sm:text-base">
-              ServeHub helps people discover trusted local providers, compare services, and book with clear expectations.
+              PageON helps people discover trusted local providers, compare services, and book with clear expectations.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link to="/categories">

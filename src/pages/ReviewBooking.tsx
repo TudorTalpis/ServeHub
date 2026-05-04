@@ -4,8 +4,8 @@ import { ArrowLeft, Star, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppStore } from "@/store/AppContext";
-import { generateId } from "@/lib/storage";
 import { formatDate } from "@/lib/booking";
+import { reviewsApi } from "@/api";
 
 const ReviewBooking = () => {
   const { bookingId } = useParams();
@@ -61,20 +61,19 @@ const ReviewBooking = () => {
     );
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!comment.trim() || !currentUser) return;
+    const created = await reviewsApi.create({
+      bookingId: booking.id,
+      providerId: booking.providerId,
+      userId: currentUser.id,
+      rating,
+      comment: comment.trim(),
+      userName: currentUser.name,
+    });
     dispatch({
       type: "ADD_REVIEW",
-      payload: {
-        id: generateId(),
-        bookingId: booking.id,
-        providerId: booking.providerId,
-        userId: currentUser.id,
-        rating,
-        comment: comment.trim(),
-        createdAt: new Date().toISOString(),
-        userName: currentUser.name,
-      },
+      payload: created,
     });
     setSubmitted(true);
   };

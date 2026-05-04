@@ -11,7 +11,7 @@ import { useSignUp } from "@/api/hooks";
 import { saveSession } from "@/lib/auth";
 
 const SignUp = (): JSX.Element => {
-  const { state, dispatch } = useAppStore();
+  const { dispatch } = useAppStore();
   const { t } = useI18n();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -96,22 +96,6 @@ const SignUp = (): JSX.Element => {
         name: response.name,
         email: response.email,
       });
-
-      // Add user to state if not already present
-      const existingUser = state.users.find((u) => u.id === response.userId);
-      if (!existingUser) {
-        dispatch({
-          type: "ADD_USER",
-          payload: {
-            id: response.userId,
-            name: response.name,
-            email: response.email,
-            phone: trimmedPhone,
-            password: "",
-            role: "USER",
-          },
-        });
-      }
 
       // Update app state
       dispatch({ type: "LOGIN", payload: { userId: response.userId } });
@@ -215,9 +199,10 @@ const SignUp = (): JSX.Element => {
                 />
                 <button
                   type="button"
+                  data-no-scale
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -258,9 +243,10 @@ const SignUp = (): JSX.Element => {
                 />
                 <button
                   type="button"
+                  data-no-scale
                   aria-label={showConfirm ? "Hide confirmation password" : "Show confirmation password"}
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

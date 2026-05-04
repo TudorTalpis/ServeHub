@@ -2,6 +2,7 @@ import { useAppStore } from "@/store/AppContext";
 import { useNavigate } from "react-router-dom";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { notificationsApi } from "@/api";
 import type { AppNotification, NotificationType, Role } from "@/types";
 
 function getNotificationRoute(notification: AppNotification, role: Role): string | undefined {
@@ -32,7 +33,10 @@ const Notifications = () => {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleClick = (n: (typeof notifications)[0]) => {
-    if (!n.read) dispatch({ type: "MARK_NOTIFICATION_READ", payload: n.id });
+    if (!n.read) {
+      notificationsApi.markAsRead(n.id).catch(() => {});
+      dispatch({ type: "MARK_NOTIFICATION_READ", payload: n.id });
+    }
     const route = getNotificationRoute(n, role);
     if (route) navigate(route);
   };
@@ -42,7 +46,7 @@ const Notifications = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-bold">Notifications</h1>
         {unreadCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ" })} className="text-xs gap-1.5 rounded-full">
+          <Button variant="ghost" size="sm" onClick={() => { if (userId) notificationsApi.markAllAsRead(userId).catch(() => {}); dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ" }); }} className="text-xs gap-1.5 rounded-full">
             <CheckCheck className="h-3.5 w-3.5" /> Mark all read
           </Button>
         )}

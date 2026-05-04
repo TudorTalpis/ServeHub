@@ -28,7 +28,11 @@ export function registerApiInterceptors() {
     (response) => response,
     (error) => {
       const status = error?.response?.status as number | undefined;
-      if (status === 401) {
+      const url: string = error?.config?.url ?? "";
+      // Auth calls (login/signup) must never redirect — the form handles the error inline.
+      if (url.includes("/auth/")) return Promise.reject(error);
+
+      if (status === 401 && getToken()) {
         window.location.assign("/error/401");
       } else if (status === 403) {
         window.location.assign("/error/403");

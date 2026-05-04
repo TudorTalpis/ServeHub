@@ -12,11 +12,13 @@ public class UserActionExecution : UserActions, IUserAction
     
     public UserDto? GetUserByIdAction(string id) => GetUserByIdActionExecution(id);
     
-    public LoginResponseDto? UserLoginAction(LoginRequestDto dto) => UserLoginActionExecution(dto);
+    public UserDto? UserLoginAction(LoginRequestDto dto) => UserLoginActionExecution(dto);
     
     public UserDto UserSignUpAction(SignUpRequestDto dto) => UserSignUpActionExecution(dto);
     
     public UserDto? UpdateUserAction(string id, UpdateUserDto dto) => UpdateUserActionExecution(id, dto);
+
+    public bool ChangePasswordAction(string id, ChangePasswordDto dto) => ChangePasswordActionExecution(id, dto);
 
     public List<NotificationDto> GetAllNotificationAction() => GetAllNotificationActionExecution();
     public List<NotificationDto> GetByUserIdNotificationAction(string userId) => GetByUserIdNotificationActionExecution(userId);
