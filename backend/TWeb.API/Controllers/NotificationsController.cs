@@ -5,42 +5,80 @@ using TWeb.BusinessLayer.Interfaces;
 namespace TWeb.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class NotificationsController : ControllerBase
 {
     private readonly INotificationService _notificationService;
+    private readonly ILogger<NotificationsController> _logger;
 
-    public NotificationsController(INotificationService notificationService)
+    public NotificationsController(
+        INotificationService notificationService,
+        ILogger<NotificationsController> logger)
     {
         _notificationService = notificationService;
+        _logger = logger;
     }
 
     [HttpGet]
-    public IActionResult GetAll() => Ok(_notificationService.GetAll());
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<NotificationDto>>> GetAll(CancellationToken ct)
+    {
+        var notifications = _notificationService.GetAll();
+        return Ok(notifications);
+    }
 
     [HttpGet("user/{userId}")]
-    public IActionResult GetByUserId(string userId) =>
-        Ok(_notificationService.GetByUserId(userId));
-
-    [HttpPost]
-    public IActionResult Create([FromBody] CreateNotificationDto dto)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<NotificationDto>>> GetByUserId(
+        string userId,
+        CancellationToken ct)
     {
-        var n = _notificationService.Create(dto);
-        return CreatedAtAction(nameof(GetAll), n);
+        var notifications = _notificationService.GetByUserId(userId);
+        return Ok(notifications);
+    }
+
+   
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<ActionResult<NotificationDto>> Create(
+        [FromBody] CreateNotificationDto dto,
+        CancellationToken ct)
+    {
+        var createdNotification = _notificationService.Create(dto);
+
+        return CreatedAtAction(
+            nameof(GetAll),
+            new { id = createdNotification.Id },
+            createdNotification);
     }
 
     [HttpPatch("{id}/read")]
-    public IActionResult MarkAsRead(string id)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> MarkAsRead(string id, CancellationToken ct)
     {
-        if (!_notificationService.MarkAsRead(id))
-            return NotFound(new { message = $"Notification {id} not found" });
-        return Ok(new { success = true });
+        var success = _notificationService.MarkAsRead(id);
+
+        if (!success)
+        {
+            _logger.LogWarning("MarkAsRead failed. Notification {Id} not found", id);
+
+            return NotFound(new ProblemDetails
+            {
+                Title = "Notification not found",
+                Detail = $"Notification with id '{id}' was not found",
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+
+        return NoContent();
     }
 
     [HttpPatch("user/{userId}/read-all")]
-    public IActionResult MarkAllAsRead(string userId)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> MarkAllAsRead(string userId, CancellationToken ct)
     {
-        _notificationService.MarkAllAsRead(userId);
-        return Ok(new { success = true });
+         _notificationService.MarkAllAsRead(userId);
+        return NoContent();
     }
 }
