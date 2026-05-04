@@ -5,35 +5,73 @@ using TWeb.BusinessLayer.Interfaces;
 namespace TWeb.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class TimeOffController : ControllerBase
 {
     private readonly ITimeOffService _timeOffService;
+    private readonly ILogger<TimeOffController> _logger;
 
-    public TimeOffController(ITimeOffService timeOffService)
+    public TimeOffController(
+        ITimeOffService timeOffService,
+        ILogger<TimeOffController> logger)
     {
         _timeOffService = timeOffService;
+        _logger = logger;
     }
 
     [HttpGet]
-    public IActionResult GetAll() => Ok(_timeOffService.GetAll());
-
-    [HttpGet("provider/{providerId}")]
-    public IActionResult GetByProviderId(string providerId) =>
-        Ok(_timeOffService.GetByProviderId(providerId));
-
-    [HttpPost]
-    public IActionResult Create([FromBody] CreateTimeOffDto dto)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TimeOffDto>>> GetAll(CancellationToken ct)
     {
-        var t = _timeOffService.Create(dto);
-        return CreatedAtAction(nameof(GetAll), t);
+        var timeOffs = _timeOffService.GetAll();
+        return Ok(timeOffs);
     }
 
-    [HttpDelete("{id}")]
-    public IActionResult Delete(string id)
+    [HttpGet("provider/{providerId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TimeOffDto>>> GetByProviderId(
+        string providerId,
+        CancellationToken ct)
     {
-        if (!_timeOffService.Delete(id))
-            return NotFound(new { message = $"TimeOff {id} not found" });
+        var timeOffs =  _timeOffService.GetByProviderId(providerId);
+        return Ok(timeOffs);
+    }
+
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<ActionResult<TimeOffDto>> Create(
+        [FromBody] CreateTimeOffDto dto,
+        CancellationToken ct)
+    {
+        var createdTimeOff =  _timeOffService.Create(dto);
+
+        return CreatedAtAction(
+            nameof(GetAll),
+            new { id = createdTimeOff.Id },
+            createdTimeOff);
+    }
+
+   
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(string id, CancellationToken ct)
+    {
+        var deleted =  _timeOffService.Delete(id);
+
+        if (!deleted)
+        {
+            _logger.LogWarning("Delete failed. TimeOff {Id} not found", id);
+
+            return NotFound(new ProblemDetails
+            {
+                Title = "TimeOff not found",
+                Detail = $"TimeOff with id '{id}' was not found",
+                Status = StatusCodes.Status404NotFound
+            });
+        }
+
         return NoContent();
     }
 }
