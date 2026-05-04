@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TWeb.BusinessLayer.DTOs;
+using TWeb.BusinessLayer;
+using TWeb.Domain.Models;
+
 using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
@@ -8,6 +10,7 @@ namespace TWeb.API.Controllers;
 [Route("api/v1/[controller]")]
 public class CategoriesController : ControllerBase
 {
+<<<<<<< Ion
     private readonly ICategoryService _categoryService;
     private readonly ILogger<CategoriesController> _logger;
 
@@ -26,12 +29,23 @@ public class CategoriesController : ControllerBase
         var categories = _categoryService.GetAll();
         return Ok(categories);
     }
+=======
+    private readonly IServiceAction _categoryService = new BusinessLogic().ServiceAction();
+
+    public CategoriesController()
+    {
+    }
+
+    [HttpGet]
+    public IActionResult GetAll() => Ok(_categoryService.GetAllCategoryAction());
+>>>>>>> main
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoryDto>> GetById(string id, CancellationToken ct)
     {
+<<<<<<< Ion
         var category = _categoryService.GetById(id);
 
         if (category == null)
@@ -47,6 +61,11 @@ public class CategoriesController : ControllerBase
         }
 
         return Ok(category);
+=======
+        var cat = _categoryService.GetByIdCategoryAction(id);
+        if (cat == null) return NotFound(new { message = $"Category {id} not found" });
+        return Ok(cat);
+>>>>>>> main
     }
 
     [HttpPost]
@@ -56,12 +75,17 @@ public class CategoriesController : ControllerBase
         [FromBody] CreateCategoryDto dto,
         CancellationToken ct)
     {
+<<<<<<< Ion
         var createdCategory = _categoryService.Create(dto);
 
         return CreatedAtAction(
             nameof(GetById),
             new { id = createdCategory.Id },
             createdCategory);
+=======
+        var cat = _categoryService.CreateCategoryAction(dto);
+        return CreatedAtAction(nameof(GetById), new { id = cat.Id }, cat);
+>>>>>>> main
     }
 
     [HttpPut("{id}")]
@@ -72,6 +96,7 @@ public class CategoriesController : ControllerBase
         [FromBody] UpdateCategoryDto dto,
         CancellationToken ct)
     {
+<<<<<<< Ion
         var updatedCategory = _categoryService.Update(id, dto);
 
         if (updatedCategory == null)
@@ -87,6 +112,11 @@ public class CategoriesController : ControllerBase
         }
 
         return Ok(updatedCategory);
+=======
+        var cat = _categoryService.UpdateCategoryAction(id, dto);
+        if (cat == null) return NotFound(new { message = $"Category {id} not found" });
+        return Ok(cat);
+>>>>>>> main
     }
 
     [HttpDelete("{id}")]
@@ -94,6 +124,7 @@ public class CategoriesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(string id, CancellationToken ct)
     {
+<<<<<<< Ion
         var deleted = _categoryService.Delete(id);
 
         if (!deleted)
@@ -108,6 +139,12 @@ public class CategoriesController : ControllerBase
             });
         }
 
+=======
+        if (!_categoryService.DeleteCategoryAction(id))
+            return NotFound(new { message = $"Category {id} not found" });
+>>>>>>> main
         return NoContent();
     }
 }
+
+

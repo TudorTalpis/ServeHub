@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TWeb.BusinessLayer.DTOs;
+using TWeb.BusinessLayer;
+using TWeb.Domain.Models;
+
 using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
@@ -74,3 +76,5 @@ public class UsersController : ControllerBase
         return Ok(updatedUser);
     }
 }
+
+

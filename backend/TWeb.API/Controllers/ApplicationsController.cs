@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TWeb.BusinessLayer.DTOs;
+using TWeb.BusinessLayer;
+using TWeb.Domain.Models;
+
 using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
@@ -8,6 +10,7 @@ namespace TWeb.API.Controllers;
 [Route("api/v1/[controller]")]
 public class ApplicationsController : ControllerBase
 {
+<<<<<<< Ion
     private readonly IApplicationService _applicationService;
     private readonly ILogger<ApplicationsController> _logger;
 
@@ -26,12 +29,23 @@ public class ApplicationsController : ControllerBase
         var applications = _applicationService.GetAll();
         return Ok(applications);
     }
+=======
+    private readonly IProviderAction _applicationService = new BusinessLogic().ProviderAction();
+
+    public ApplicationsController()
+    {
+    }
+
+    [HttpGet]
+    public IActionResult GetAll() => Ok(_applicationService.GetAllApplicationAction());
+>>>>>>> main
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApplicationDto>> GetById(string id, CancellationToken ct)
     {
+<<<<<<< Ion
         var application = _applicationService.GetById(id);
 
         if (application == null)
@@ -47,6 +61,11 @@ public class ApplicationsController : ControllerBase
         }
 
         return Ok(application);
+=======
+        var a = _applicationService.GetByIdApplicationAction(id);
+        if (a == null) return NotFound(new { message = $"Application {id} not found" });
+        return Ok(a);
+>>>>>>> main
     }
 
     [HttpPost]
@@ -56,6 +75,7 @@ public class ApplicationsController : ControllerBase
         [FromBody] CreateApplicationDto dto,
         CancellationToken ct)
     {
+<<<<<<< Ion
         // [ApiController] already validates ModelState automatically
 
         var createdApplication = _applicationService.Create(dto);
@@ -64,6 +84,10 @@ public class ApplicationsController : ControllerBase
             nameof(GetById),
             new { id = createdApplication.Id },
             createdApplication);
+=======
+        var a = _applicationService.CreateApplicationAction(dto);
+        return CreatedAtAction(nameof(GetById), new { id = a.Id }, a);
+>>>>>>> main
     }
 
     [HttpPut("{id}")]
@@ -74,6 +98,7 @@ public class ApplicationsController : ControllerBase
         [FromBody] UpdateApplicationDto dto,
         CancellationToken ct)
     {
+<<<<<<< Ion
         var updatedApplication = _applicationService.Update(id, dto);
 
         if (updatedApplication == null)
@@ -89,6 +114,13 @@ public class ApplicationsController : ControllerBase
         }
 
         return Ok(updatedApplication);
+=======
+        var a = _applicationService.UpdateApplicationAction(id, dto);
+        if (a == null) return NotFound(new { message = $"Application {id} not found" });
+        return Ok(a);
+>>>>>>> main
     }
 
 }
+
+

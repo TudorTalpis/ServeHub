@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TWeb.BusinessLayer.DTOs;
+using TWeb.BusinessLayer;
+using TWeb.Domain.Models;
+
 using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
@@ -8,6 +10,7 @@ namespace TWeb.API.Controllers;
 [Route("api/v1/[controller]")]
 public class AuthController : ControllerBase
 {
+<<<<<<< Ion
     private readonly IUserService _userService;
     private readonly ILogger<AuthController> _logger;
 
@@ -17,6 +20,12 @@ public class AuthController : ControllerBase
     {
         _userService = userService;
         _logger = logger;
+=======
+    private readonly IUserAction _userService = new BusinessLogic().UserAction();
+
+    public AuthController()
+    {
+>>>>>>> main
     }
 
     [HttpPost("login")]
@@ -26,6 +35,7 @@ public class AuthController : ControllerBase
         [FromBody] LoginRequestDto dto,
         CancellationToken ct)
     {
+<<<<<<< Ion
         var result =  _userService.Login(dto);
 
         if (result == null)
@@ -40,6 +50,10 @@ public class AuthController : ControllerBase
             });
         }
 
+=======
+        var result = _userService.UserLoginAction(dto);
+        if (result == null) return Unauthorized(new { message = "Invalid email or password" });
+>>>>>>> main
         return Ok(result);
     }
 
@@ -54,7 +68,12 @@ public class AuthController : ControllerBase
         
         var result = _userService.SignUp(dto);
 
+<<<<<<< Ion
         if (result == null)
+=======
+        var user = _userService.UserSignUpAction(dto);
+        return Ok(new LoginResponseDto
+>>>>>>> main
         {
             _logger.LogWarning("Signup failed for email {Email}", dto.Email);
 
@@ -69,3 +88,5 @@ public class AuthController : ControllerBase
         return Created(string.Empty, result);
     }
 }
+
+

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TWeb.BusinessLayer.DTOs;
+using TWeb.BusinessLayer;
+using TWeb.Domain.Models;
+
 using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
@@ -8,6 +10,7 @@ namespace TWeb.API.Controllers;
 [Route("api/v1/[controller]")]
 public class ReviewsController : ControllerBase
 {
+<<<<<<< Ion
     private readonly IReviewService _reviewService;
     private readonly ILogger<ReviewsController> _logger;
 
@@ -37,6 +40,20 @@ public class ReviewsController : ControllerBase
         var reviews = _reviewService.GetByProviderId(providerId);
         return Ok(reviews);
     }
+=======
+    private readonly IServiceAction _reviewService = new BusinessLogic().ServiceAction();
+
+    public ReviewsController()
+    {
+    }
+
+    [HttpGet]
+    public IActionResult GetAll() => Ok(_reviewService.GetAllReviewAction());
+
+    [HttpGet("provider/{providerId}")]
+    public IActionResult GetByProviderId(string providerId) =>
+        Ok(_reviewService.GetByProviderIdReviewAction(providerId));
+>>>>>>> main
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -44,6 +61,7 @@ public class ReviewsController : ControllerBase
         [FromBody] CreateReviewDto dto,
         CancellationToken ct)
     {
+<<<<<<< Ion
         var createdReview =  _reviewService.Create(dto);
 
         return CreatedAtAction(
@@ -53,3 +71,11 @@ public class ReviewsController : ControllerBase
     }
 }
 
+=======
+        var r = _reviewService.CreateReviewAction(dto);
+        return CreatedAtAction(nameof(GetAll), r);
+    }
+}
+
+
+>>>>>>> main

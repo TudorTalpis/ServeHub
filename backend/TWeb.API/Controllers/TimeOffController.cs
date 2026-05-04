@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TWeb.BusinessLayer.DTOs;
+using TWeb.BusinessLayer;
+using TWeb.Domain.Models;
+
 using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
@@ -8,6 +10,7 @@ namespace TWeb.API.Controllers;
 [Route("api/v1/[controller]")]
 public class TimeOffController : ControllerBase
 {
+<<<<<<< Ion
     private readonly ITimeOffService _timeOffService;
     private readonly ILogger<TimeOffController> _logger;
 
@@ -36,6 +39,20 @@ public class TimeOffController : ControllerBase
         var timeOffs =  _timeOffService.GetByProviderId(providerId);
         return Ok(timeOffs);
     }
+=======
+    private readonly IProviderAction _timeOffService = new BusinessLogic().ProviderAction();
+
+    public TimeOffController()
+    {
+    }
+
+    [HttpGet]
+    public IActionResult GetAll() => Ok(_timeOffService.GetAllTimeOffAction());
+
+    [HttpGet("provider/{providerId}")]
+    public IActionResult GetByProviderId(string providerId) =>
+        Ok(_timeOffService.GetByProviderIdTimeOffAction(providerId));
+>>>>>>> main
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -43,12 +60,17 @@ public class TimeOffController : ControllerBase
         [FromBody] CreateTimeOffDto dto,
         CancellationToken ct)
     {
+<<<<<<< Ion
         var createdTimeOff =  _timeOffService.Create(dto);
 
         return CreatedAtAction(
             nameof(GetAll),
             new { id = createdTimeOff.Id },
             createdTimeOff);
+=======
+        var t = _timeOffService.CreateTimeOffAction(dto);
+        return CreatedAtAction(nameof(GetAll), t);
+>>>>>>> main
     }
 
    
@@ -58,6 +80,7 @@ public class TimeOffController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(string id, CancellationToken ct)
     {
+<<<<<<< Ion
         var deleted =  _timeOffService.Delete(id);
 
         if (!deleted)
@@ -75,3 +98,12 @@ public class TimeOffController : ControllerBase
         return NoContent();
     }
 }
+=======
+        if (!_timeOffService.DeleteTimeOffAction(id))
+            return NotFound(new { message = $"TimeOff {id} not found" });
+        return NoContent();
+    }
+}
+
+
+>>>>>>> main
