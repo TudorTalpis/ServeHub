@@ -1,4 +1,5 @@
 ﻿import { useState } from "react";
+import axios from "axios";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Calendar as CalendarIcon, Check, Clock, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -189,8 +190,19 @@ const BookService = () => {
       setShowConfirmModal(false);
       setSlotError("");
       setConfirmed(true);
-    } catch {
-      setSlotError("Failed to create booking. Please try again.");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        if (status === 409) {
+          setSlotError("This hour was just booked. Please choose another time.");
+        } else if (status === 401) {
+          setSlotError("Please sign in again or continue as a guest, then try once more.");
+        } else {
+          setSlotError("Failed to create booking. Please try again.");
+        }
+      } else {
+        setSlotError("Failed to create booking. Please try again.");
+      }
       setShowConfirmModal(false);
     }
   };

@@ -40,11 +40,8 @@ public class BookingsController : ControllerBase
         Ok(_bookingService.GetByProviderIdBookingAction(providerId));
 
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<BookingDto>> Create(
-        [FromBody] CreateBookingDto dto,
-        CancellationToken ct)
+    [AllowAnonymous]
+    public IActionResult Create([FromBody] CreateBookingDto dto)
     {
         var b = _bookingService.CreateBookingAction(dto);
         if (b == null) return Conflict(new { message = "Booking conflict or provider is blocked" });
