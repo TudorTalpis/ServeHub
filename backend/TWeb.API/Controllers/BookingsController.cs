@@ -38,6 +38,7 @@ public class BookingsController : ControllerBase
         Ok(_bookingService.GetByProviderIdBookingAction(providerId));
 
     [HttpPost]
+    [AllowAnonymous]
     public IActionResult Create([FromBody] CreateBookingDto dto)
     {
         var b = _bookingService.CreateBookingAction(dto);

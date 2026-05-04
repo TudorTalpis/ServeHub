@@ -6,6 +6,8 @@ import { DEFAULT_RATES } from "@/lib/currency";
 import { getSession } from "@/lib/auth";
 import { fetchAppStateFromAPI } from "@/lib/apiSync";
 
+export { appReducer } from "./appReducer";
+
 function getSessionState() {
   const s = getSession();
   return s
