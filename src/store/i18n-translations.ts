@@ -184,9 +184,9 @@ export const translations: Translations = {
   // Auth
   "auth.signIn.title": { en: "Sign In", ro: "Autentificare", ru: "Войти" },
   "auth.signIn.subtitle": {
-    en: "Access your ServeHub account",
-    ro: "Accesează contul tău ServeHub",
-    ru: "Войдите в свой аккаунт ServeHub",
+    en: "Access your PageON account",
+    ro: "Accesează contul tău PageON",
+    ru: "Войдите в свой аккаунт PageON",
   },
   "auth.signIn.google": { en: "Continue with Google", ro: "Continuă cu Google", ru: "Войти через Google" },
   "auth.signIn.button": { en: "Sign In", ro: "Autentificare", ru: "Войти" },
@@ -199,9 +199,9 @@ export const translations: Translations = {
   },
   "auth.signUp.title": { en: "Create Account", ro: "Creare Cont", ru: "Создать аккаунт" },
   "auth.signUp.subtitle": {
-    en: "Join ServeHub today",
-    ro: "Alătură-te ServeHub azi",
-    ru: "Присоединяйтесь к ServeHub сегодня",
+    en: "Join PageON today",
+    ro: "Alătură-te PageON azi",
+    ru: "Присоединяйтесь к PageON сегодня",
   },
   "auth.signUp.button": { en: "Create Account", ro: "Creează Cont", ru: "Создать аккаунт" },
   "auth.signUp.hasAccount": { en: "Already have an account?", ro: "Ai deja cont?", ru: "Уже есть аккаунт?" },
@@ -285,9 +285,9 @@ export const translations: Translations = {
   "footer.terms": { en: "Terms", ro: "Termeni", ru: "Условия" },
   "footer.about": { en: "About", ro: "Despre", ru: "О нас" },
   "footer.copy": {
-    en: "© 2026 ServeHub — Premium Service Marketplace",
-    ro: "© 2026 ServeHub — Piață de Servicii Premium",
-    ru: "© 2026 ServeHub — Премиум маркетплейс услуг",
+    en: "© 2026 PageON — Premium Service Marketplace",
+    ro: "© 2026 PageON — Piață de Servicii Premium",
+    ru: "© 2026 PageON — Премиум маркетплейс услуг",
   },
 
   // Common

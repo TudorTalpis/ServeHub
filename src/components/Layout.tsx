@@ -16,7 +16,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
                 <Zap className="h-3.5 w-3.5 text-white" />
               </div>
-              <span className="font-display text-sm font-bold text-foreground">ServeHub</span>
+              <span className="font-display text-sm font-bold text-foreground">PageON</span>
             </div>
             <p className="text-xs text-muted-foreground">{t("footer.copy")}</p>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">

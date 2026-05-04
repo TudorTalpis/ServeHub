@@ -26,5 +26,15 @@ namespace TWeb.BusinessLayer
         {
             return new BookingActionExecution();
         }
+
+        public ICategoryAction CategoryAction()
+        {
+            return new ServiceActionExecution();
+        }
+
+        public IReviewAction ReviewAction()
+        {
+            return new ServiceActionExecution();
+        }
     }
 }

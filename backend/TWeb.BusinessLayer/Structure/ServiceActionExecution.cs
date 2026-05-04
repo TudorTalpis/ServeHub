@@ -4,7 +4,7 @@ using TWeb.Domain.Models;
 
 namespace TWeb.BusinessLayer.Structure;
 
-public class ServiceActionExecution : ServiceActions, IServiceAction
+public class ServiceActionExecution : ServiceActions, IServiceAction, ICategoryAction, IReviewAction
 {
     public ServiceActionExecution() { }
 

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
@@ -6,6 +7,7 @@ using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/[controller]")]
 public class NotificationsController : ControllerBase

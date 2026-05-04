@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
@@ -10,176 +11,80 @@ namespace TWeb.API.Controllers;
 [Route("api/v1/[controller]")]
 public class ProvidersController : ControllerBase
 {
-    private readonly IProviderProfileService _providerService;
-    private readonly ILogger<ProvidersController> _logger;
+    private readonly IProviderAction _providerService = new BusinessLogic().ProviderAction();
 
-    public ProvidersController(
-        IProviderProfileService providerService,
-        ILogger<ProvidersController> logger)
+    public ProvidersController()
     {
-        _providerService = providerService;
-        _logger = logger;
     }
 
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProviderProfileDto>>> GetAll(CancellationToken ct)
-    {
-        var providers = _providerService.GetAll();
-        return Ok(providers);
-    }
+    public IActionResult GetAll() => Ok(_providerService.GetAllProviderProfileAction());
 
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProviderProfileDto>> GetById(string id, CancellationToken ct)
+    public IActionResult GetById(string id)
     {
-        var provider =  _providerService.GetById(id);
-
-        if (provider == null)
-        {
-            _logger.LogWarning("Provider with id {Id} not found", id);
-
-            return NotFound(new ProblemDetails
-            {
-                Title = "Provider not found",
-                Detail = $"Provider with id '{id}' was not found",
-                Status = StatusCodes.Status404NotFound
-            });
-        }
-
-        return Ok(provider);
+        var p = _providerService.GetByIdProviderProfileAction(id);
+        if (p == null) return NotFound(new { message = $"Provider {id} not found" });
+        return Ok(p);
     }
 
     [HttpGet("slug/{slug}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProviderProfileDto>> GetBySlug(string slug, CancellationToken ct)
+    public IActionResult GetBySlug(string slug)
     {
-        var provider =  _providerService.GetBySlug(slug);
-
-        if (provider == null)
-        {
-            _logger.LogWarning("Provider with slug {Slug} not found", slug);
-
-            return NotFound(new ProblemDetails
-            {
-                Title = "Provider not found",
-                Detail = $"Provider with slug '{slug}' was not found",
-                Status = StatusCodes.Status404NotFound
-            });
-        }
-
-        return Ok(provider);
+        var p = _providerService.GetBySlugProviderProfileAction(slug);
+        if (p == null) return NotFound(new { message = $"Provider with slug '{slug}' not found" });
+        return Ok(p);
     }
 
     [HttpGet("user/{userId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProviderProfileDto>> GetByUserId(string userId, CancellationToken ct)
+    public IActionResult GetByUserId(string userId)
     {
-        var provider = _providerService.GetByUserId(userId);
-
-        if (provider == null)
-        {
-            _logger.LogWarning("Provider for user {UserId} not found", userId);
-
-            return NotFound(new ProblemDetails
-            {
-                Title = "Provider not found",
-                Detail = $"Provider for user '{userId}' was not found",
-                Status = StatusCodes.Status404NotFound
-            });
-        }
-
-        return Ok(provider);
+        var p = _providerService.GetByUserIdProviderProfileAction(userId);
+        if (p == null) return NotFound(new { message = $"Provider for user {userId} not found" });
+        return Ok(p);
     }
 
+    [Authorize]
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<ProviderProfileDto>> Create(
-        [FromBody] ProviderProfileDto dto,
-        CancellationToken ct)
+    public IActionResult Create([FromBody] ProviderProfileDto dto)
     {
-        var createdProvider = _providerService.Create(dto);
-
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = createdProvider.Id },
-            createdProvider);
+        var p = _providerService.CreateProviderProfileAction(dto);
+        return CreatedAtAction(nameof(GetById), new { id = p.Id }, p);
     }
 
+    [Authorize]
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProviderProfileDto>> Update(
-        string id,
-        [FromBody] UpdateProviderProfileDto dto,
-        CancellationToken ct)
+    public IActionResult Update(string id, [FromBody] UpdateProviderProfileDto dto)
     {
-        var updatedProvider =  _providerService.Update(id, dto);
-
-        if (updatedProvider == null)
-        {
-            _logger.LogWarning("Update failed. Provider {Id} not found", id);
-
-            return NotFound(new ProblemDetails
-            {
-                Title = "Provider not found",
-                Detail = $"Provider with id '{id}' was not found",
-                Status = StatusCodes.Status404NotFound
-            });
-        }
-
-        return Ok(updatedProvider);
+        var p = _providerService.UpdateProviderProfileAction(id, dto);
+        if (p == null) return NotFound(new { message = $"Provider {id} not found" });
+        return Ok(p);
     }
 
-[HttpPatch("{id}/featured")]
-public IActionResult ToggleFeatured(string id)
-{
-    if (!_providerService.ToggleFeatured(id))
-        return NotFound(new { message = $"Provider {id} not found" });
-    return Ok(_providerService.GetById(id));
-}
-
-[HttpPatch("{id}/sponsored")]
-public IActionResult ToggleSponsored(string id)
-{
-    if (!_providerService.ToggleSponsored(id))
-        return NotFound(new { message = $"Provider {id} not found" });
-    return Ok(_providerService.GetById(id));
-}
-
-[HttpPatch("{id}/blocked")]
-public IActionResult ToggleBlocked(string id)
-{
-    if (!_providerService.ToggleBlocked(id))
-        return NotFound(new { message = $"Provider {id} not found" });
-    return Ok(_providerService.GetById(id));
-}
-
-    // 🔥 DRY helper method (removes duplication)
-    private async Task<ActionResult<ProviderProfileDto>> ToggleAndReturn(
-        string id,
-        CancellationToken ct,
-        Func<string, CancellationToken, Task<ProviderProfileDto?>> toggleFunc)
+    [Authorize]
+    [HttpPatch("{id}/featured")]
+    public IActionResult ToggleFeatured(string id)
     {
-        var provider = await toggleFunc(id, ct);
+        if (!_providerService.ToggleFeaturedProviderProfileAction(id))
+            return NotFound(new { message = $"Provider {id} not found" });
+        return Ok(_providerService.GetByIdProviderProfileAction(id));
+    }
 
-        if (provider == null)
-        {
-            _logger.LogWarning("Toggle failed. Provider {Id} not found", id);
+    [Authorize]
+    [HttpPatch("{id}/sponsored")]
+    public IActionResult ToggleSponsored(string id)
+    {
+        if (!_providerService.ToggleSponsoredProviderProfileAction(id))
+            return NotFound(new { message = $"Provider {id} not found" });
+        return Ok(_providerService.GetByIdProviderProfileAction(id));
+    }
 
-            return NotFound(new ProblemDetails
-            {
-                Title = "Provider not found",
-                Detail = $"Provider with id '{id}' was not found",
-                Status = StatusCodes.Status404NotFound
-            });
-        }
-
-        return Ok(provider);
+    [Authorize]
+    [HttpPatch("{id}/blocked")]
+    public IActionResult ToggleBlocked(string id)
+    {
+        if (!_providerService.ToggleBlockedProviderProfileAction(id))
+            return NotFound(new { message = $"Provider {id} not found" });
+        return Ok(_providerService.GetByIdProviderProfileAction(id));
     }
 }
-
-

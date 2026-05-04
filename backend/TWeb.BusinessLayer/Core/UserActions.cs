@@ -23,22 +23,23 @@ public class UserActions
         return user == null ? null : MapToDto(user);
     }
 
-    protected LoginResponseDto? UserLoginActionExecution(LoginRequestDto dto)
+    protected UserDto? UserLoginActionExecution(LoginRequestDto dto)
     {
         using var db = new UserContext();
-        var user = db.AppUsers.FirstOrDefault(x => x.Email.ToLower() == dto.Email.ToLower() && x.Password == dto.Password);
-        
+        var user = db.AppUsers.FirstOrDefault(x => x.Email.ToLower() == dto.Email.ToLower());
         if (user == null) return null;
 
-        return new LoginResponseDto
+        try
         {
-            Token = $"mock-jwt-{user.Id}-{DateTime.UtcNow.Ticks}",
-            UserId = user.Id,
-            Role = user.Role.ToString(),
-            Name = user.Name,
-            Email = user.Email,
-            IsDemo = user.Email.EndsWith("@demo.com", StringComparison.OrdinalIgnoreCase)
-        };
+            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.Password)) return null;
+        }
+        catch (BCrypt.Net.SaltParseException)
+        {
+            // Stored password is not a valid BCrypt hash (e.g., plaintext inserted manually).
+            return null;
+        }
+
+        return MapToDto(user);
     }
 
     protected UserDto UserSignUpActionExecution(SignUpRequestDto dto)
@@ -49,7 +50,7 @@ public class UserActions
             Name = dto.Name,
             Email = dto.Email,
             Phone = dto.Phone,
-            Password = dto.Password,
+            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Role = Role.USER
         };
         
@@ -70,11 +71,27 @@ public class UserActions
         if (dto.Email != null) user.Email = dto.Email;
         if (dto.Phone != null) user.Phone = dto.Phone;
         if (dto.Avatar != null) user.Avatar = dto.Avatar;
+        if (dto.Role != null && Enum.TryParse<Role>(dto.Role, ignoreCase: true, out var parsedRole))
+        {
+            user.Role = parsedRole;
+        }
 
         db.AppUsers.Update(user);
         db.SaveChanges();
 
         return MapToDto(user);
+    }
+
+    protected bool ChangePasswordActionExecution(string id, ChangePasswordDto dto)
+    {
+        using var db = new UserContext();
+        var user = db.AppUsers.FirstOrDefault(x => x.Id == id);
+        if (user == null) return false;
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.Password)) return false;
+        user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        db.AppUsers.Update(user);
+        db.SaveChanges();
+        return true;
     }
 
     // -- NOTIFICATIONS --

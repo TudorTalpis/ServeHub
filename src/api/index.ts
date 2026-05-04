@@ -5,6 +5,7 @@ import type {
   AuthResponse,
   UserDto,
   UpdateUserDto,
+  ChangePasswordDto,
   CategoryDto,
   CreateCategoryDto,
   UpdateCategoryDto,
@@ -41,6 +42,9 @@ export const usersApi = {
   getById: (id: string) => apiClient.get<UserDto>(`/users/${id}`).then((r) => r.data),
 
   update: (id: string, data: UpdateUserDto) => apiClient.put<UserDto>(`/users/${id}`, data).then((r) => r.data),
+
+  changePassword: (id: string, data: ChangePasswordDto) =>
+    apiClient.patch(`/users/${id}/password`, data).then((r) => r.data),
 };
 
 // ============ CATEGORIES API ============

@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide the native browser password reveal button (Edge/IE) — we render our own toggle. */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+  display: none;
+}
+
 @layer base {
   :root {
     /* Light palette */
@@ -143,13 +149,13 @@
   * {
     @apply border-border;
   }
-  button {
+  button:not([data-no-scale]) {
     transition: transform 160ms ease;
   }
-  button:hover:not(:disabled) {
+  button:not([data-no-scale]):hover:not(:disabled) {
     transform: scale(1.03);
   }
-  button:active:not(:disabled) {
+  button:not([data-no-scale]):active:not(:disabled) {
     transform: scale(0.99);
   }
   body {

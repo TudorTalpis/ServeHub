@@ -25,7 +25,7 @@ import {
   Check,
 } from "lucide-react";
 import { createCategoryFromName, findCategoryByName, getCategoryNames } from "@/lib/categories";
-import { generateId } from "@/lib/storage";
+import { providersApi, servicesApi } from "@/api";
 import { getEffectiveServiceBufferMinutes } from "@/lib/services";
 import { toast } from "@/hooks/use-toast";
 import { fileToBase64 } from "@/lib/fileToBase64";
@@ -134,7 +134,8 @@ const AdminProviderDetail = () => {
     setProfileForm((prev) => ({ ...prev, galleryPhotos: prev.galleryPhotos.filter((_, i) => i !== index) }));
   };
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
+    await providersApi.update(provider.id, { id: provider.id, userId: provider.userId, slug: provider.slug, defaultServiceBufferMinutes: provider.defaultServiceBufferMinutes, autoConfirm: provider.autoConfirm, rating: provider.rating, reviewCount: provider.reviewCount, featured: provider.featured, sponsored: provider.sponsored, blocked: provider.blocked, ...profileForm });
     dispatch({
       type: "UPDATE_PROVIDER_PROFILE",
       payload: { id: provider.id, ...profileForm },
@@ -163,23 +164,31 @@ const AdminProviderDetail = () => {
     });
   };
 
-  const saveService = () => {
+  const saveService = async () => {
     if (addingService) {
+      const created = await servicesApi.create({
+        providerId: provider.id,
+        title: serviceForm.title || "Untitled",
+        description: serviceForm.description || "",
+        price: serviceForm.price || 0,
+        duration: serviceForm.duration || 60,
+        bufferMinutes: serviceForm.bufferMinutes ?? undefined,
+        categoryId: serviceForm.categoryId || provider.categoryIds[0] || "",
+      });
       dispatch({
         type: "ADD_SERVICE",
-        payload: {
-          id: generateId(),
-          providerId: provider.id,
-          title: serviceForm.title || "Untitled",
-          description: serviceForm.description || "",
-          price: serviceForm.price || 0,
-          duration: serviceForm.duration || 60,
-          bufferMinutes: serviceForm.bufferMinutes ?? null,
-          categoryId: serviceForm.categoryId || provider.categoryIds[0] || "",
-        },
+        payload: created,
       });
       toast({ title: "Service added" });
     } else if (editingServiceId) {
+      await servicesApi.update(editingServiceId, {
+        title: serviceForm.title,
+        description: serviceForm.description,
+        price: serviceForm.price,
+        duration: serviceForm.duration,
+        bufferMinutes: serviceForm.bufferMinutes,
+        categoryId: serviceForm.categoryId,
+      });
       dispatch({
         type: "UPDATE_SERVICE",
         payload: { id: editingServiceId, ...serviceForm },
@@ -190,7 +199,8 @@ const AdminProviderDetail = () => {
     setAddingService(false);
   };
 
-  const deleteService = (id: string) => {
+  const deleteService = async (id: string) => {
+    await servicesApi.delete(id);
     dispatch({ type: "DELETE_SERVICE", payload: id });
     toast({ title: "Service deleted" });
   };
@@ -436,7 +446,7 @@ const AdminProviderDetail = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => dispatch({ type: "TOGGLE_FEATURED", payload: provider.id })}
+                onClick={async () => { await providersApi.toggleFeatured(provider.id); dispatch({ type: "TOGGLE_FEATURED", payload: provider.id }); }}
                 className={`h-8 w-8 p-0 ${provider.featured ? "text-primary" : "text-muted-foreground"}`}
               >
                 <Award className="h-4 w-4" />
@@ -444,7 +454,7 @@ const AdminProviderDetail = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => dispatch({ type: "TOGGLE_SPONSORED", payload: provider.id })}
+                onClick={async () => { await providersApi.toggleSponsored(provider.id); dispatch({ type: "TOGGLE_SPONSORED", payload: provider.id }); }}
                 className={`h-8 w-8 p-0 ${provider.sponsored ? "text-accent" : "text-muted-foreground"}`}
               >
                 <Megaphone className="h-4 w-4" />
@@ -452,7 +462,7 @@ const AdminProviderDetail = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => dispatch({ type: "TOGGLE_BLOCKED", payload: provider.id })}
+                onClick={async () => { await providersApi.toggleBlocked(provider.id); dispatch({ type: "TOGGLE_BLOCKED", payload: provider.id }); }}
                 className={`h-8 w-8 p-0 ${provider.blocked ? "text-destructive" : "text-muted-foreground"}`}
               >
                 <Ban className="h-4 w-4" />

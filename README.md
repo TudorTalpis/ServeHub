@@ -1,4 +1,4 @@
-# ServeHub - Service Marketplace
+# PageON - Service Marketplace
 
 A modern service marketplace platform connecting users with local service providers. Browse categories, book appointments, manage services, and grow your business — all in one place.
 

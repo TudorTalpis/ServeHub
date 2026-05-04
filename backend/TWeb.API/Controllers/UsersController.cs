@@ -1,7 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
-
 using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
@@ -74,6 +74,18 @@ public class UsersController : ControllerBase
         }
 
         return Ok(updatedUser);
+    }
+
+    [Authorize]
+    [HttpPatch("{id}/password")]
+    public IActionResult ChangePassword(string id, [FromBody] ChangePasswordDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
+            return BadRequest(new { message = "New password must be at least 6 characters" });
+
+        var success = _userService.ChangePasswordAction(id, dto);
+        if (!success) return BadRequest(new { message = "Current password is incorrect" });
+        return NoContent();
     }
 }
 

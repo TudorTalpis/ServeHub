@@ -39,6 +39,12 @@ export interface UpdateUserDto {
   email?: string;
   phone?: string;
   avatar?: string;
+  role?: Role;
+}
+
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
 }
 
 // ============ CATEGORY DTOs ============

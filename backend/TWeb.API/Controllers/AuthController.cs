@@ -1,8 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using TWeb.BusinessLayer;
-using TWeb.Domain.Models;
-
 using TWeb.BusinessLayer.Interfaces;
+using TWeb.Domain.Models;
 
 namespace TWeb.API.Controllers;
 
@@ -10,22 +13,13 @@ namespace TWeb.API.Controllers;
 [Route("api/v1/[controller]")]
 public class AuthController : ControllerBase
 {
-<<<<<<< Ion
-    private readonly IUserService _userService;
-    private readonly ILogger<AuthController> _logger;
+    private readonly IUserAction _userService;
+    private readonly IConfiguration _config;
 
-    public AuthController(
-        IUserService userService,
-        ILogger<AuthController> logger)
+    public AuthController(IConfiguration config)
     {
-        _userService = userService;
-        _logger = logger;
-=======
-    private readonly IUserAction _userService = new BusinessLogic().UserAction();
-
-    public AuthController()
-    {
->>>>>>> main
+        _userService = new BusinessLogic().UserAction();
+        _config = config;
     }
 
     [HttpPost("login")]
@@ -35,26 +29,17 @@ public class AuthController : ControllerBase
         [FromBody] LoginRequestDto dto,
         CancellationToken ct)
     {
-<<<<<<< Ion
-        var result =  _userService.Login(dto);
-
-        if (result == null)
+        var user = _userService.UserLoginAction(dto);
+        if (user == null) return Unauthorized(new { message = "Invalid email or password" });
+        return Ok(new LoginResponseDto
         {
-            _logger.LogWarning("Failed login attempt for email {Email}", dto.Email);
-
-            return Unauthorized(new ProblemDetails
-            {
-                Title = "Authentication failed",
-                Detail = "Invalid email or password",
-                Status = StatusCodes.Status401Unauthorized
-            });
-        }
-
-=======
-        var result = _userService.UserLoginAction(dto);
-        if (result == null) return Unauthorized(new { message = "Invalid email or password" });
->>>>>>> main
-        return Ok(result);
+            Token = GenerateJwtToken(user),
+            UserId = user.Id,
+            Role = user.Role,
+            Name = user.Name,
+            Email = user.Email,
+            IsDemo = user.Email.EndsWith("@demo.com", StringComparison.OrdinalIgnoreCase)
+        });
     }
 
     [HttpPost("signup")]
@@ -65,28 +50,34 @@ public class AuthController : ControllerBase
         CancellationToken ct)
     {
         // Model validation is automatically handled by [ApiController]
-        
-        var result = _userService.SignUp(dto);
-
-<<<<<<< Ion
-        if (result == null)
-=======
         var user = _userService.UserSignUpAction(dto);
         return Ok(new LoginResponseDto
->>>>>>> main
         {
-            _logger.LogWarning("Signup failed for email {Email}", dto.Email);
+            Token = GenerateJwtToken(user),
+            UserId = user.Id,
+            Role = user.Role,
+            Name = user.Name,
+            Email = user.Email
+        });
+    }
 
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Signup failed",
-                Detail = "User could not be created",
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-
-        return Created(string.Empty, result);
+    private string GenerateJwtToken(UserDto user)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, user.Role),
+            new Claim(ClaimTypes.Name, user.Name)
+        };
+        var token = new JwtSecurityToken(
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(int.Parse(_config["Jwt:ExpiryHours"]!)),
+            signingCredentials: creds);
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
-
-

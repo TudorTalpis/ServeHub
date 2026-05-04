@@ -8,6 +8,8 @@ import { ArrowLeft, Save, Mail, Phone, User, Shield } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
+import { usersApi } from "@/api";
+import { toast } from "@/hooks/use-toast";
 
 const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
@@ -53,24 +55,34 @@ const AdminUserDetail = () => {
   const userBookings = state.bookings.filter((b) => b.userId === user.id);
   const providerBookings = providerProfile ? state.bookings.filter((b) => b.providerId === providerProfile.id) : [];
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim()) {
       alert("All fields are required!");
       return;
     }
 
-    dispatch({
-      type: "UPDATE_USER",
-      payload: {
-        id: user.id,
+    try {
+      const updated = await usersApi.update(user.id, {
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         role: formData.role as Role,
-      },
-    });
+      });
 
-    navigate("/admin/users");
+      // Sync local state with the persisted result from the backend
+      dispatch({
+        type: "UPDATE_USER",
+        payload: { id: user.id, ...updated },
+      });
+
+      toast({ title: "User updated successfully." });
+      navigate("/admin/users");
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Failed to update user.";
+      toast({ title: message, variant: "destructive" });
+    }
   };
 
   return (

@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { isHourOccupied } from "@/lib/booking";
 import { getEffectiveServiceBufferMinutes } from "@/lib/services";
+import { notificationsApi, bookingsApi } from "@/api";
 import { generateId } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/AppContext";
@@ -792,55 +793,59 @@ const ProviderSchedule = () => {
     resetAddDialog({ date: bookingForm.date });
   };
 
-  const confirmSelectedBooking = () => {
+  const confirmSelectedBooking = async () => {
     if (!selectedBooking || selectedBooking.status !== "PENDING" || !currentProvider) return;
 
+    try {
+      await bookingsApi.update(selectedBooking.id, { status: "CONFIRMED" });
+    } catch {
+      // proceed with optimistic local update regardless
+    }
     dispatch({ type: "UPDATE_BOOKING", payload: { id: selectedBooking.id, status: "CONFIRMED" } });
 
     if (!selectedBooking.userId.startsWith("guest-")) {
       const serviceName = servicesById.get(selectedBooking.serviceId)?.title ?? "service";
-      dispatch({
-        type: "ADD_NOTIFICATION",
-        payload: {
-          id: generateId(),
+      notificationsApi
+        .create({
           userId: selectedBooking.userId,
           type: "booking_success",
           title: "Booking Confirmed",
           message: `${currentProvider.name} confirmed your ${serviceName} booking on ${formatDateLabel(selectedBooking.date)} at ${selectedBooking.startTime}.`,
-          read: false,
-          createdAt: new Date().toISOString(),
           linkTo: "/dashboard",
-        },
-      });
+        })
+        .then((n) => dispatch({ type: "ADD_NOTIFICATION", payload: n }))
+        .catch(() => {});
     }
   };
 
-  const completeSelectedBooking = () => {
+  const completeSelectedBooking = async () => {
     if (!selectedBooking || selectedBooking.status !== "CONFIRMED" || !currentProvider) return;
     const bookingEndMs = toDateTimeMs(selectedBooking.date, selectedBooking.endTime);
     if (bookingEndMs === null || Date.now() < bookingEndMs) return;
 
+    try {
+      await bookingsApi.update(selectedBooking.id, { status: "COMPLETED" });
+    } catch {
+      // proceed with optimistic local update regardless
+    }
     dispatch({ type: "UPDATE_BOOKING", payload: { id: selectedBooking.id, status: "COMPLETED" } });
 
     if (!selectedBooking.userId.startsWith("guest-")) {
       const serviceName = servicesById.get(selectedBooking.serviceId)?.title ?? "service";
-      dispatch({
-        type: "ADD_NOTIFICATION",
-        payload: {
-          id: generateId(),
+      notificationsApi
+        .create({
           userId: selectedBooking.userId,
           type: "review_request",
           title: "Your Service Is Completed",
           message: `Your ${serviceName} session with ${currentProvider.name} was marked complete. Tap to leave a review.`,
-          read: false,
-          createdAt: new Date().toISOString(),
           linkTo: `/review/${selectedBooking.id}`,
-        },
-      });
+        })
+        .then((n) => dispatch({ type: "ADD_NOTIFICATION", payload: n }))
+        .catch(() => {});
     }
   };
 
-  const cancelSelectedBooking = () => {
+  const cancelSelectedBooking = async () => {
     if (
       !selectedBooking ||
       selectedBooking.status === "CANCELLED" ||
@@ -849,23 +854,25 @@ const ProviderSchedule = () => {
     )
       return;
 
+    try {
+      await bookingsApi.update(selectedBooking.id, { status: "CANCELLED" });
+    } catch {
+      // proceed with optimistic local update regardless
+    }
     dispatch({ type: "UPDATE_BOOKING", payload: { id: selectedBooking.id, status: "CANCELLED" } });
 
     if (!selectedBooking.userId.startsWith("guest-")) {
       const serviceName = servicesById.get(selectedBooking.serviceId)?.title ?? "service";
-      dispatch({
-        type: "ADD_NOTIFICATION",
-        payload: {
-          id: generateId(),
+      notificationsApi
+        .create({
           userId: selectedBooking.userId,
           type: "booking_success",
           title: "Booking Cancelled",
           message: `${currentProvider.name} marked your ${serviceName} booking on ${formatDateLabel(selectedBooking.date)} at ${selectedBooking.startTime} as not taking place.`,
-          read: false,
-          createdAt: new Date().toISOString(),
           linkTo: "/dashboard",
-        },
-      });
+        })
+        .then((n) => dispatch({ type: "ADD_NOTIFICATION", payload: n }))
+        .catch(() => {});
     }
   };
 

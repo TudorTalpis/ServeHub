@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppStore } from "@/store/AppContext";
 import { CategoryMultiSelect } from "@/components/CategoryMultiSelect";
 import { createCategoryFromName, findCategoryByName } from "@/lib/categories";
-import { generateId } from "@/lib/storage";
+import { applicationsApi, notificationsApi } from "@/api";
 import { Check, X, Link as LinkIcon, Upload } from "lucide-react";
 
 const BecomeProvider = () => {
@@ -47,7 +47,7 @@ const BecomeProvider = () => {
     return created.id;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !currentUser ||
@@ -60,40 +60,38 @@ const BecomeProvider = () => {
       galleryPhotos.length === 0
     )
       return;
+    const created = await applicationsApi.create({
+      userId: currentUser.id,
+      name,
+      slug: slug.trim(),
+      description,
+      categoryIds,
+      phone,
+      location,
+      avatar: avatar.trim(),
+      galleryPhotos,
+    });
     dispatch({
       type: "ADD_APPLICATION",
-      payload: {
-        id: generateId(),
-        userId: currentUser.id,
-        name,
-        slug: slug.trim(),
-        description,
-        categoryIds,
-        phone,
-        location,
-        avatar: avatar.trim(),
-        galleryPhotos,
-        status: "PENDING",
-        createdAt: new Date().toISOString(),
-      },
+      payload: created,
     });
-    state.users
-      .filter((u) => u.role === "ADMIN")
-      .forEach((admin) => {
-        dispatch({
-          type: "ADD_NOTIFICATION",
-          payload: {
-            id: generateId(),
+    await Promise.all(
+      state.users
+        .filter((u) => u.role === "ADMIN")
+        .map(async (admin) => {
+          const notif = await notificationsApi.create({
             userId: admin.id,
             type: "application_submitted",
             title: "New Provider Application",
             message: `${currentUser.name} applied to become a provider: ${name}`,
-            read: false,
-            createdAt: new Date().toISOString(),
             linkTo: "/admin/applications",
-          },
-        });
-      });
+          });
+          dispatch({
+            type: "ADD_NOTIFICATION",
+            payload: { ...notif, read: false },
+          });
+        }),
+    );
     setSubmitted(true);
   };
 
