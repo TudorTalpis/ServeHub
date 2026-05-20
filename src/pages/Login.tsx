@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Power, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { AppUser } from "@/types";
+import type { AppUser, Role } from "@/types";
 import { useLogin } from "@/api/hooks";
 import { saveSession } from "@/lib/auth";
 
@@ -54,8 +54,17 @@ const Login = (): JSX.Element => {
         email: response.email,
       });
 
-      // Update app state
-      dispatch({ type: "LOGIN", payload: { userId: response.userId } });
+      // Update app state — pass full user info so Navbar/Settings can resolve
+      // the current user even when /users is admin-only and state.users is empty.
+      dispatch({
+        type: "LOGIN",
+        payload: {
+          userId: response.userId,
+          role: response.role as Role,
+          name: response.name,
+          email: response.email,
+        },
+      });
       toast({ title: `Welcome back, ${response.name}!` });
 
       // Redirect to role-appropriate dashboard
@@ -88,8 +97,8 @@ const Login = (): JSX.Element => {
       <div className="relative w-full max-w-md animate-fade-in">
         <div className="rounded-2xl border border-border/70 bg-card p-8 shadow-card">
           <div className="text-center mb-8">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
-              <Zap className="h-7 w-7 text-white" />
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/40">
+              <Power className="h-7 w-7 text-white" strokeWidth={2.5} />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">{t("auth.signIn.title")}</h1>
             <p className="mt-2 text-muted-foreground text-sm">{t("auth.signIn.subtitle")}</p>

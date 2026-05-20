@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TWeb.Domain.Entities.Service;
 
-namespace TWeb.DataAccessLayer.Context;
+namespace TWeb.DataAccess.Context;
 
 public class ServiceContext : DbContext
 {

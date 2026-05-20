@@ -1,4 +1,4 @@
-namespace TWeb.DataAccessLayer;
+namespace TWeb.DataAccess;
 
 public class DbSession
 {

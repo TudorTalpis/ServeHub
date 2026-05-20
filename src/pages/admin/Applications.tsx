@@ -1,18 +1,44 @@
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Info } from "lucide-react";
+import { Info, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { cn } from "@/lib/utils";
 import { getCategoryNames } from "@/lib/categories";
 
 const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
+type StatusFilter = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
+
 const AdminApplications = () => {
   const { state } = useAppStore();
-  const pending = state.applications.filter((application) => application.status === "PENDING");
-  const resolved = state.applications.filter((application) => application.status !== "PENDING");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+
+  const filteredApplications = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return state.applications.filter((application) => {
+      const matchesSearch =
+        query === "" ||
+        application.name.toLowerCase().includes(query) ||
+        application.location.toLowerCase().includes(query) ||
+        application.phone.includes(searchQuery);
+      const matchesStatus = statusFilter === "ALL" || application.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [state.applications, searchQuery, statusFilter]);
+
+  const pending = useMemo(
+    () => filteredApplications.filter((a) => a.status === "PENDING"),
+    [filteredApplications],
+  );
+  const resolved = useMemo(
+    () => filteredApplications.filter((a) => a.status !== "PENDING"),
+    [filteredApplications],
+  );
 
   const getCategories = (ids: string[]) => getCategoryNames(state.categories, ids).join(", ") || "Unknown category";
 
@@ -24,10 +50,32 @@ const AdminApplications = () => {
           <p className="text-sm text-muted-foreground">Review pending requests and track resolved provider applications.</p>
         </section>
 
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, location, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 rounded-xl"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+            className="rounded-xl border border-border bg-background px-4 py-2 text-sm"
+          >
+            <option value="ALL">All Statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+
         <section className={PANEL_CLASS}>
           <div className="mb-4 flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Pending ({pending.length})</h3>
-            <Badge variant="outline" className="rounded-full border-warning/40 bg-warning/10 text-[10px] text-warning">
+            <Badge className="rounded-full border-0 bg-warning text-warning-foreground text-[10px]">
               Needs review
             </Badge>
           </div>
@@ -70,8 +118,8 @@ const AdminApplications = () => {
                       className={cn(
                         "rounded-full px-2 text-[10px]",
                         application.status === "APPROVED"
-                          ? "border-0 bg-success/15 text-success"
-                          : "border-0 bg-destructive/15 text-destructive",
+                          ? "border-0 bg-success text-success-foreground"
+                          : "border-0 bg-destructive text-destructive-foreground",
                       )}
                     >
                       {application.status}

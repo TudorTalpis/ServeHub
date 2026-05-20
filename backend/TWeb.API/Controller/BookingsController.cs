@@ -1,30 +1,25 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
+using TWeb.BusinessLayer.Interfaces;
 using TWeb.Domain.Models;
 
-using TWeb.BusinessLayer.Interfaces;
-
-namespace TWeb.API.Controllers;
+namespace TWeb.API.Controller;
 
 [Authorize]
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/[controller]")]
 public class BookingsController : ControllerBase
 {
     private readonly IBookingAction _bookingService = new BusinessLogic().BookingAction();
 
-    public BookingsController()
-    {
-    }
+    public BookingsController() { }
 
     [HttpGet]
     public IActionResult GetAll() => Ok(_bookingService.GetAllBookingAction());
 
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<BookingDto>> GetById(string id, CancellationToken ct)
+    public IActionResult GetById(string id)
     {
         var b = _bookingService.GetByIdBookingAction(id);
         if (b == null) return NotFound(new { message = $"Booking {id} not found" });
@@ -49,12 +44,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<BookingDto>> Update(
-        string id,
-        [FromBody] UpdateBookingDto dto,
-        CancellationToken ct)
+    public IActionResult Update(string id, [FromBody] UpdateBookingDto dto)
     {
         var b = _bookingService.UpdateBookingAction(id, dto);
         if (b == null) return NotFound(new { message = $"Booking {id} not found" });
@@ -62,9 +52,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(string id, CancellationToken ct)
+    public IActionResult Delete(string id)
     {
         if (!_bookingService.DeleteBookingAction(id))
             return NotFound(new { message = $"Booking {id} not found" });

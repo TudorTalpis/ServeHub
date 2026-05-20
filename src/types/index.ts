@@ -172,7 +172,16 @@ export interface AppState {
 
 // ============ ACTIONS ============
 export type AppAction =
-  | { type: "LOGIN"; payload: { userId: string } }
+  | {
+      type: "LOGIN";
+      payload: {
+        userId: string;
+        role?: Role;
+        name?: string;
+        email?: string;
+        phone?: string;
+      };
+    }
   | { type: "LOGOUT" }
   | { type: "SET_STATE"; payload: AppState }
   | { type: "ADD_CATEGORY"; payload: Category }

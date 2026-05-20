@@ -1,45 +1,58 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Edit2, Users as UsersIcon, Mail, Phone, Shield } from "lucide-react";
+import { Search, Edit2, Users as UsersIcon, Mail, Phone, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
 
 const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
+const PAGE_SIZE = 10;
 
 const ROLE_COLORS: Record<Role, string> = {
-  ADMIN: "bg-purple-500/15 text-purple-500 border-purple-500/30",
-  PROVIDER: "bg-blue-500/15 text-blue-500 border-blue-500/30",
-  USER: "bg-green-500/15 text-green-500 border-green-500/30",
-  GUEST: "bg-gray-500/15 text-gray-500 border-gray-500/30"
+  ADMIN: "bg-purple-600 text-white border-transparent",
+  PROVIDER: "bg-blue-600 text-white border-transparent",
+  USER: "bg-green-600 text-white border-transparent",
+  GUEST: "bg-gray-500 text-white border-transparent",
 };
 
 const AdminUsers = () => {
   const { state } = useAppStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<Role | "ALL">("ALL");
+  const [page, setPage] = useState(1);
 
-  const filteredUsers = state.users.filter(user => {
-    const matchesSearch = 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.phone.includes(searchQuery);
-    
-    const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
-    
-    return matchesSearch && matchesRole;
-  });
+  const filteredUsers = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return state.users.filter((user) => {
+      const matchesSearch =
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query) ||
+        user.phone.includes(searchQuery);
+      const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
+      return matchesSearch && matchesRole;
+    });
+  }, [state.users, searchQuery, roleFilter]);
 
-  const userStats = {
-    total: state.users.length,
-    admins: state.users.filter(u => u.role === "ADMIN").length,
-    providers: state.users.filter(u => u.role === "PROVIDER").length,
-    users: state.users.filter(u => u.role === "USER").length
-  };
+  const userStats = useMemo(
+    () => ({
+      total: state.users.length,
+      admins: state.users.filter((u) => u.role === "ADMIN").length,
+      providers: state.users.filter((u) => u.role === "PROVIDER").length,
+      users: state.users.filter((u) => u.role === "USER").length,
+    }),
+    [state.users],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedUsers = useMemo(
+    () => filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredUsers, currentPage],
+  );
 
   return (
     <AdminPanelLayout>
@@ -96,13 +109,19 @@ const AdminUsers = () => {
             <Input
               placeholder="Search by name, email, or phone..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
               className="pl-10 rounded-xl"
             />
           </div>
           <select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value as Role | "ALL")}
+            onChange={(e) => {
+              setRoleFilter(e.target.value as Role | "ALL");
+              setPage(1);
+            }}
             className="rounded-xl border border-border bg-background px-4 py-2 text-sm"
           >
             <option value="ALL">All Roles</option>
@@ -124,7 +143,7 @@ const AdminUsers = () => {
             </div>
           ) : (
             <div className="space-y-2">
-              {filteredUsers.map((user) => (
+              {pagedUsers.map((user) => (
                 <div
                   key={user.id}
                   className="rounded-2xl border border-border/60 bg-background/40 p-4"
@@ -159,6 +178,34 @@ const AdminUsers = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </section>

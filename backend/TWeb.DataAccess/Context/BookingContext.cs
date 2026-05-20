@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TWeb.Domain.Entities.Booking;
 
-namespace TWeb.DataAccessLayer.Context;
+namespace TWeb.DataAccess.Context;
 
 public class BookingContext : DbContext
 {

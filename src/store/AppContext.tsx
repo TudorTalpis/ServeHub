@@ -15,10 +15,28 @@ function getSessionState() {
     : { userId: null as null, role: "GUEST" as Role };
 }
 
+// On page reload the session is restored from localStorage, but the global
+// /users endpoint is admin-only — so non-admins would otherwise have an empty
+// state.users and currentUser would resolve to null. Seed a minimal record
+// from the saved session so Navbar/Settings can find the current user.
+function getSessionUserSeed() {
+  const s = getSession();
+  if (!s) return [];
+  return [{
+    id: s.userId,
+    name: s.name,
+    email: s.email,
+    phone: "",
+    password: "",
+    role: s.role as Role,
+    avatar: "",
+  }];
+}
+
 function getEmptyState(): AppState {
   return {
     session: getSessionState(),
-    users: [],
+    users: getSessionUserSeed(),
     providerProfiles: [],
     categories: [],
     services: [],
@@ -63,10 +81,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchAppStateFromAPI()
       .then((data) => {
-        dispatch({
-          type: "SET_STATE",
-          payload: { ...getEmptyState(), ...data } as AppState,
-        });
+        const base = getEmptyState();
+        const merged = { ...base, ...data } as AppState;
+        // Make sure the session user (seeded by getEmptyState) survives even
+        // when /users came back empty (non-admin) and overwrote base.users.
+        if (base.users.length && !merged.users.some((u) => u.id === base.users[0].id)) {
+          merged.users = [...merged.users, ...base.users];
+        }
+        dispatch({ type: "SET_STATE", payload: merged });
       })
       .catch(() => {
         // API unavailable — keep empty state, app degrades gracefully
@@ -80,10 +102,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const resetData = () => {
     fetchAppStateFromAPI()
       .then((data) => {
-        dispatch({
-          type: "SET_STATE",
-          payload: { ...getEmptyState(), ...data } as AppState,
-        });
+        const base = getEmptyState();
+        const merged = { ...base, ...data } as AppState;
+        if (base.users.length && !merged.users.some((u) => u.id === base.users[0].id)) {
+          merged.users = [...merged.users, ...base.users];
+        }
+        dispatch({ type: "SET_STATE", payload: merged });
       })
       .catch(() => {});
   };

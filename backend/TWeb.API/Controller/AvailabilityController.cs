@@ -5,7 +5,7 @@ using TWeb.Domain.Models;
 
 using TWeb.BusinessLayer.Interfaces;
 
-namespace TWeb.API.Controllers;
+namespace TWeb.API.Controller;
 
 [ApiController]
 [Route("api/[controller]")]

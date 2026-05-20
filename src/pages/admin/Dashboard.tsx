@@ -526,12 +526,12 @@ const AdminDashboard = () => {
                         <span
                           className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
                             booking.status === "COMPLETED"
-                              ? "bg-success/15 text-success"
+                              ? "bg-success text-success-foreground"
                               : booking.status === "CONFIRMED"
-                                ? "bg-primary/15 text-primary"
+                                ? "bg-primary text-primary-foreground"
                                 : booking.status === "PENDING"
-                                  ? "bg-warning/15 text-warning"
-                                  : "bg-destructive/15 text-destructive"
+                                  ? "bg-warning text-warning-foreground"
+                                  : "bg-destructive text-destructive-foreground"
                           }`}
                         >
                           {booking.status}

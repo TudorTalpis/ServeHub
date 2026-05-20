@@ -1,17 +1,18 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit2, Trash2, Package, Search } from "lucide-react";
+import { Plus, Edit2, Trash2, Package, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { normalizeCategory } from "@/lib/categories";
 import { categoriesApi } from "@/api";
 import type { Category } from "@/types";
 
 const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
+const PAGE_SIZE = 12;
 
 const AVAILABLE_ICONS = [
   "Wrench",
@@ -39,6 +40,7 @@ const AVAILABLE_COLORS = ["blue", "green", "purple", "orange", "red", "pink", "y
 const AdminCategories = () => {
   const { state, dispatch } = useAppStore();
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCategory, setNewCategory] = useState<Partial<Category>>({
     name: "",
@@ -47,10 +49,20 @@ const AdminCategories = () => {
     color: "blue",
   });
 
-  const filteredCategories = state.categories.filter(
-    (cat) =>
-      cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cat.description.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredCategories = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return state.categories.filter(
+      (cat) =>
+        cat.name.toLowerCase().includes(query) ||
+        cat.description.toLowerCase().includes(query),
+    );
+  }, [state.categories, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCategories.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedCategories = useMemo(
+    () => filteredCategories.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredCategories, currentPage],
   );
 
   const handleCreate = async () => {
@@ -107,7 +119,10 @@ const AdminCategories = () => {
           <Input
             placeholder="Search categories..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
             className="pl-10 rounded-xl"
           />
         </div>
@@ -202,7 +217,7 @@ const AdminCategories = () => {
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredCategories.map((category) => (
+              {pagedCategories.map((category) => (
                 <div key={category.id} className="rounded-2xl border border-border/60 bg-background/40 p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
@@ -237,6 +252,34 @@ const AdminCategories = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </section>

@@ -1,21 +1,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
+using TWeb.BusinessLayer.Interfaces;
 using TWeb.Domain.Models;
 
-using TWeb.BusinessLayer.Interfaces;
-
-namespace TWeb.API.Controllers;
+namespace TWeb.API.Controller;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/[controller]")]
 public class ReviewsController : ControllerBase
 {
     private readonly IReviewAction _reviewService = new BusinessLogic().ReviewAction();
 
-    public ReviewsController()
-    {
-    }
+    public ReviewsController() { }
 
     [HttpGet]
     public IActionResult GetAll() => Ok(_reviewService.GetAllReviewAction());
@@ -26,10 +23,7 @@ public class ReviewsController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<ReviewDto>> Create(
-        [FromBody] CreateReviewDto dto,
-        CancellationToken ct)
+    public IActionResult Create([FromBody] CreateReviewDto dto)
     {
         var r = _reviewService.CreateReviewAction(dto);
         return CreatedAtAction(nameof(GetAll), r);

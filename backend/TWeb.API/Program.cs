@@ -1,10 +1,12 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using TWeb.DataAccess.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
-TWeb.DataAccessLayer.DbSession.ConnectionString =
+TWeb.DataAccess.DbSession.ConnectionString =
     builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddCors(options =>
@@ -28,7 +30,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            NameClaimType = "sub",
+            RoleClaimType = "role"
         };
     });
 
@@ -48,5 +52,14 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Apply EF Core migrations for every context on startup.
+using (var db = new UserContext())     db.Database.Migrate();
+using (var db = new ServiceContext())  db.Database.Migrate();
+using (var db = new ProviderContext()) db.Database.Migrate();
+using (var db = new BookingContext())  db.Database.Migrate();
+
+// Insert demo data on a fresh database (idempotent — skips if Users already exist).
+TWeb.API.DbSeeder.Seed();
 
 app.Run();

@@ -1,21 +1,56 @@
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Ban, Award, Megaphone, Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Search, Star, Ban, Award, Megaphone, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getCategoryNames } from "@/lib/categories";
 
 const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
+const PAGE_SIZE = 10;
+
+type ProviderFilter = "ALL" | "ACTIVE" | "BLOCKED" | "FEATURED" | "SPONSORED";
 
 const AdminProviders = () => {
   const { state, dispatch } = useAppStore();
   const navigate = useNavigate();
   const providers = state.providerProfiles;
-  const activeProviders = providers.filter((provider) => !provider.blocked).length;
-  const blockedProviders = providers.filter((provider) => provider.blocked).length;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<ProviderFilter>("ALL");
+  const [page, setPage] = useState(1);
+
+  const activeProviders = useMemo(() => providers.filter((p) => !p.blocked).length, [providers]);
+  const blockedProviders = useMemo(() => providers.filter((p) => p.blocked).length, [providers]);
+
+  const filteredProviders = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return providers.filter((provider) => {
+      const categoryNames = getCategoryNames(state.categories, provider.categoryIds).join(" ").toLowerCase();
+      const matchesSearch =
+        query === "" ||
+        provider.name.toLowerCase().includes(query) ||
+        provider.location.toLowerCase().includes(query) ||
+        categoryNames.includes(query);
+      const matchesFilter =
+        filter === "ALL" ||
+        (filter === "ACTIVE" && !provider.blocked) ||
+        (filter === "BLOCKED" && provider.blocked) ||
+        (filter === "FEATURED" && provider.featured) ||
+        (filter === "SPONSORED" && provider.sponsored);
+      return matchesSearch && matchesFilter;
+    });
+  }, [providers, searchQuery, filter, state.categories]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProviders.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedProviders = useMemo(
+    () => filteredProviders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredProviders, currentPage],
+  );
 
   return (
     <AdminPanelLayout>
@@ -25,10 +60,39 @@ const AdminProviders = () => {
           <p className="text-sm text-muted-foreground">Manage featured placement, sponsored visibility, and account access.</p>
         </section>
 
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search providers by name, location, or category..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
+              className="pl-10 rounded-xl"
+            />
+          </div>
+          <select
+            value={filter}
+            onChange={(e) => {
+              setFilter(e.target.value as ProviderFilter);
+              setPage(1);
+            }}
+            className="rounded-xl border border-border bg-background px-4 py-2 text-sm"
+          >
+            <option value="ALL">All Providers</option>
+            <option value="ACTIVE">Active</option>
+            <option value="BLOCKED">Blocked</option>
+            <option value="FEATURED">Featured</option>
+            <option value="SPONSORED">Sponsored</option>
+          </select>
+        </div>
+
         <section className={PANEL_CLASS}>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              {providers.length} Provider{providers.length !== 1 ? "s" : ""}
+              {filteredProviders.length} of {providers.length} Provider{providers.length !== 1 ? "s" : ""}
             </h3>
             <div className="flex items-center gap-2 text-[11px]">
               <Badge variant="outline" className="rounded-full border-success/30 bg-success/10 text-success">{activeProviders} active</Badge>
@@ -36,13 +100,15 @@ const AdminProviders = () => {
             </div>
           </div>
 
-          {providers.length === 0 ? (
+          {filteredProviders.length === 0 ? (
             <div className="rounded-2xl border border-dashed bg-secondary/30 p-8 text-center">
-              <p className="text-sm text-muted-foreground">No providers yet.</p>
+              <p className="text-sm text-muted-foreground">
+                {providers.length === 0 ? "No providers yet." : "No providers match your filters."}
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {providers.map((provider) => {
+              {pagedProviders.map((provider) => {
                 const categoryNames = getCategoryNames(state.categories, provider.categoryIds);
                 return (
                   <div
@@ -62,13 +128,13 @@ const AdminProviders = () => {
                             </Badge>
                           )}
                           {provider.featured && (
-                            <Badge variant="outline" className="rounded-full border-primary/40 px-2 text-[10px] text-primary">Featured</Badge>
+                            <Badge className="rounded-full border-0 bg-primary px-2 text-[10px] text-primary-foreground">Featured</Badge>
                           )}
                           {provider.sponsored && (
-                            <Badge className="rounded-full border-0 bg-accent/15 px-2 text-[10px] text-accent">Sponsored</Badge>
+                            <Badge className="rounded-full border-0 bg-accent px-2 text-[10px] text-accent-foreground">Sponsored</Badge>
                           )}
                           {provider.blocked && (
-                            <Badge className="rounded-full border-0 bg-destructive/15 px-2 text-[10px] text-destructive">Blocked</Badge>
+                            <Badge className="rounded-full border-0 bg-destructive px-2 text-[10px] text-destructive-foreground">Blocked</Badge>
                           )}
                         </div>
                         <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -143,6 +209,34 @@ const AdminProviders = () => {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </section>

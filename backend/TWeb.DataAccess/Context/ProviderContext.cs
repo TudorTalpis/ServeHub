@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TWeb.Domain.Entities.Provider;
 
-namespace TWeb.DataAccessLayer.Context;
+namespace TWeb.DataAccess.Context;
 
 public class ProviderContext : DbContext
 {

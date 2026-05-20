@@ -1,14 +1,14 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TWeb.BusinessLayer;
 using TWeb.Domain.Models;
 
 using TWeb.BusinessLayer.Interfaces;
 
-namespace TWeb.API.Controllers;
+namespace TWeb.API.Controller;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/[controller]")]
 public class ProvidersController : ControllerBase
 {
     private readonly IProviderAction _providerService = new BusinessLogic().ProviderAction();
@@ -61,7 +61,7 @@ public class ProvidersController : ControllerBase
         return Ok(p);
     }
 
-    [Authorize]
+    [Authorize(Roles = "ADMIN")]
     [HttpPatch("{id}/featured")]
     public IActionResult ToggleFeatured(string id)
     {
@@ -70,7 +70,7 @@ public class ProvidersController : ControllerBase
         return Ok(_providerService.GetByIdProviderProfileAction(id));
     }
 
-    [Authorize]
+    [Authorize(Roles = "ADMIN")]
     [HttpPatch("{id}/sponsored")]
     public IActionResult ToggleSponsored(string id)
     {
@@ -79,7 +79,7 @@ public class ProvidersController : ControllerBase
         return Ok(_providerService.GetByIdProviderProfileAction(id));
     }
 
-    [Authorize]
+    [Authorize(Roles = "ADMIN")]
     [HttpPatch("{id}/blocked")]
     public IActionResult ToggleBlocked(string id)
     {

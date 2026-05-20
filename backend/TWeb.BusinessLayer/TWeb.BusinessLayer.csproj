@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TWeb.Domain\TWeb.Domain.csproj" />
-    <ProjectReference Include="..\TWeb.DataAccessLayer\TWeb.DataAccessLayer.csproj" />
+    <ProjectReference Include="..\TWeb.DataAccess\TWeb.DataAccess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
