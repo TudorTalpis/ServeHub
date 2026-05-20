@@ -1,0 +1,53 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TWeb.BusinessLayer;
+using TWeb.BusinessLayer.Interfaces;
+using TWeb.Domain.Models;
+
+namespace TWeb.API.Controller;
+
+[ApiController]
+[Route("api/[controller]")]
+public class CategoriesController : ControllerBase
+{
+    private readonly ICategoryAction _categoryService = new BusinessLogic().CategoryAction();
+
+    public CategoriesController() { }
+
+    [HttpGet]
+    public IActionResult GetAll() => Ok(_categoryService.GetAllCategoryAction());
+
+    [HttpGet("{id}")]
+    public IActionResult GetById(string id)
+    {
+        var cat = _categoryService.GetByIdCategoryAction(id);
+        if (cat == null) return NotFound(new { message = $"Category {id} not found" });
+        return Ok(cat);
+    }
+
+    [Authorize(Roles = "ADMIN")]
+    [HttpPost]
+    public IActionResult Create([FromBody] CreateCategoryDto dto)
+    {
+        var cat = _categoryService.CreateCategoryAction(dto);
+        return CreatedAtAction(nameof(GetById), new { id = cat.Id }, cat);
+    }
+
+    [Authorize(Roles = "ADMIN")]
+    [HttpPut("{id}")]
+    public IActionResult Update(string id, [FromBody] UpdateCategoryDto dto)
+    {
+        var cat = _categoryService.UpdateCategoryAction(id, dto);
+        if (cat == null) return NotFound(new { message = $"Category {id} not found" });
+        return Ok(cat);
+    }
+
+    [Authorize(Roles = "ADMIN")]
+    [HttpDelete("{id}")]
+    public IActionResult Delete(string id)
+    {
+        if (!_categoryService.DeleteCategoryAction(id))
+            return NotFound(new { message = $"Category {id} not found" });
+        return NoContent();
+    }
+}

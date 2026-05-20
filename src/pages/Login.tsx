@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Power, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { AppUser } from "@/types";
+import type { AppUser, Role } from "@/types";
 import { useLogin } from "@/api/hooks";
 import { saveSession } from "@/lib/auth";
 
@@ -54,8 +54,17 @@ const Login = (): JSX.Element => {
         email: response.email,
       });
 
-      // Update app state
-      dispatch({ type: "LOGIN", payload: { userId: response.userId } });
+      // Update app state — pass full user info so Navbar/Settings can resolve
+      // the current user even when /users is admin-only and state.users is empty.
+      dispatch({
+        type: "LOGIN",
+        payload: {
+          userId: response.userId,
+          role: response.role as Role,
+          name: response.name,
+          email: response.email,
+        },
+      });
       toast({ title: `Welcome back, ${response.name}!` });
 
       // Redirect to role-appropriate dashboard

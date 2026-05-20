@@ -29,11 +29,33 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       };
 
     case "LOGIN": {
-      const user = state.users.find((u) => u.id === action.payload.userId);
-      if (!user) {
-        return { ...state, session: { userId: action.payload.userId, role: "USER" } };
-      }
-      return { ...state, session: { userId: user.id, role: user.role } };
+      const { userId, role: payloadRole, name, email, phone } = action.payload;
+      const existing = state.users.find((u) => u.id === userId);
+      const role = existing?.role ?? payloadRole ?? "USER";
+
+      // Ensure the logged-in user is present in state.users so the rest of the
+      // app (Navbar, Settings, role-based UI) can resolve them by id, even when
+      // the global /users endpoint is admin-only and hasn't populated the list.
+      const userRecord = {
+        id: userId,
+        name: name ?? existing?.name ?? "",
+        email: email ?? existing?.email ?? "",
+        phone: phone ?? existing?.phone ?? "",
+        password: existing?.password ?? "",
+        role,
+        avatar: existing?.avatar ?? "",
+        isDemo: existing?.isDemo,
+      };
+
+      const users = existing
+        ? state.users.map((u) => (u.id === userId ? { ...u, ...userRecord } : u))
+        : [...state.users, userRecord];
+
+      return {
+        ...state,
+        users,
+        session: { userId, role },
+      };
     }
     case "LOGOUT":
       return { ...state, session: { userId: null, role: "GUEST" } };

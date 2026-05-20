@@ -37,60 +37,65 @@ const ProviderPage = () => {
   return (
       <div className="animate-fade-in">
         {/* Hero header */}
-        <div className="relative">
-          {provider.coverPhoto ? (
-              <div className="h-60 sm:h-80 overflow-hidden">
+        <div className="mx-auto max-w-6xl px-4 pt-6 pb-6">
+          <Link to="/" className="inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-card/80 px-3 py-1.5 text-xs text-foreground shadow-card backdrop-blur-sm transition-colors hover:bg-card">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+
+          {/* Wallpaper full width, with avatar straddling its bottom-left edge */}
+          <div className="relative mt-5">
+            {provider.coverPhoto && (
+              <div className="h-56 sm:h-72 rounded-2xl overflow-hidden border border-border/60 shadow-card">
                 <img src={provider.coverPhoto} alt="Cover" className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/45 to-black/20" />
               </div>
-          ) : (
-              <div className="h-60 sm:h-80 bg-secondary relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/30 to-transparent" />
-              </div>
+            )}
+
+            {/* Avatar mostly sits ON the wallpaper, with just a small portion
+                dangling below to anchor it to the identity area. */}
+            <div className="absolute left-5 sm:left-6 bottom-0 translate-y-1/4 z-10 flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-2xl border-4 border-background overflow-hidden bg-card shadow-elevated">
+              {provider.avatar ? (
+                  <img src={provider.avatar} alt={provider.name} className="h-full w-full object-cover" />
+              ) : (
+                  <span className="font-display text-2xl font-bold text-muted-foreground/40">{initials}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Reserved space for the small portion of the avatar dangling below */}
+          <div className="h-8 sm:h-10" />
+
+          {/* Name — sits below the avatar, indented to align with avatar's left edge */}
+          <h1 className="mt-2 font-display text-3xl sm:text-4xl font-bold text-foreground leading-tight">
+            {provider.name}
+          </h1>
+
+          {/* Sponsored / Featured badges below the name */}
+          {(provider.sponsored || provider.featured) && (
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              {provider.sponsored && <Badge className="bg-accent text-accent-foreground border-0 rounded-full px-2.5 text-xs">Sponsored</Badge>}
+              {provider.featured && <Badge className="bg-primary text-primary-foreground border-0 rounded-full px-2.5 text-xs">Featured</Badge>}
+            </div>
           )}
 
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
+          {/* Description directly on page background, no container */}
+          <p className="mt-5 max-w-3xl text-sm sm:text-[15px] leading-relaxed text-foreground/90">
+            {provider.description}
+          </p>
 
-          <div className="absolute bottom-0 left-0 right-0">
-            <div className="mx-auto max-w-6xl px-4 pb-6">
-              <Link to="/" className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-card/80 px-3 py-1.5 text-xs text-foreground shadow-card backdrop-blur-sm transition-colors hover:bg-card">
-                <ArrowLeft className="h-4 w-4" /> Back
-              </Link>
-              <div className="flex flex-col sm:flex-row items-start gap-5">
-                {/* Avatar */}
-                <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-border/60 overflow-hidden bg-card shadow-elevated">
-                  {provider.avatar ? (
-                      <img src={provider.avatar} alt={provider.name} className="h-full w-full object-cover" />
-                  ) : (
-                      <span className="font-display text-2xl font-bold text-muted-foreground/40">{initials}</span>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h1 className="font-display text-2xl sm:text-3xl font-bold text-white drop-shadow-sm">{provider.name}</h1>
-                    {provider.sponsored && <Badge className="bg-accent text-accent-foreground border-0 rounded-full px-2.5 text-xs">Sponsored</Badge>}
-                    {provider.featured && <Badge className="bg-primary text-primary-foreground border-0 rounded-full px-2.5 text-xs">Featured</Badge>}
-                  </div>
-                  <div className="mt-3 max-w-3xl rounded-2xl border border-border/30 bg-card/82 p-3 shadow-card backdrop-blur-sm sm:p-4">
-                    <p className="text-sm leading-relaxed text-foreground/95">{provider.description}</p>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1.5">
-                        <Star className="h-4 w-4 fill-warning text-warning" />
-                        <span className="font-semibold text-foreground">{provider.rating}</span>
-                        <span>({provider.reviewCount} reviews)</span>
-                      </span>
-                      <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> {provider.location}</span>
-                      <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" /> {provider.phone}</span>
-                      {categoryNames.map((name) => (
-                        <Badge key={name} className="rounded-full border-border/50 bg-secondary text-muted-foreground px-2.5 text-xs">
-                          {name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Meta row directly on page background */}
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Star className="h-4 w-4 fill-warning text-warning" />
+              <span className="font-semibold text-foreground">{provider.rating}</span>
+              <span>({provider.reviewCount} reviews)</span>
+            </span>
+            <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> {provider.location}</span>
+            <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" /> {provider.phone}</span>
+            {categoryNames.map((name) => (
+              <Badge key={name} className="rounded-full border border-border/50 bg-secondary text-muted-foreground px-2.5 text-xs">
+                {name}
+              </Badge>
+            ))}
           </div>
         </div>
 

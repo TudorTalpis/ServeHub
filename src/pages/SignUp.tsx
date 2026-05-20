@@ -9,6 +9,7 @@ import { UserPlus, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSignUp } from "@/api/hooks";
 import { saveSession } from "@/lib/auth";
+import type { Role } from "@/types";
 
 const SignUp = (): JSX.Element => {
   const { dispatch } = useAppStore();
@@ -97,8 +98,18 @@ const SignUp = (): JSX.Element => {
         email: response.email,
       });
 
-      // Update app state
-      dispatch({ type: "LOGIN", payload: { userId: response.userId } });
+      // Update app state — pass full user info so Navbar/Settings can resolve
+      // the current user even when /users is admin-only.
+      dispatch({
+        type: "LOGIN",
+        payload: {
+          userId: response.userId,
+          role: response.role as Role,
+          name: response.name,
+          email: response.email,
+          phone,
+        },
+      });
       toast({ title: `Welcome, ${response.name}!` });
       navigate("/");
     } catch (err: unknown) {

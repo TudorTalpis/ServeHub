@@ -356,6 +356,16 @@ input[type='password']::-ms-clear {
   transition: box-shadow 180ms ease, transform 180ms ease;
 }
 
+/* Ensure the day columns don't clip a hovered card spilling out sideways. */
+.provider-calendar .fc .fc-timegrid-col-frame,
+.provider-calendar .fc .fc-timegrid-col,
+.provider-calendar .fc .fc-timegrid-cols,
+.provider-calendar .fc .fc-timegrid-slots,
+.provider-calendar .fc .fc-timegrid-body,
+.provider-calendar .fc .fc-scrollgrid-section-body td {
+  overflow: visible !important;
+}
+
 .provider-calendar .fc .schedule-event:hover,
 .provider-calendar .fc .schedule-event-hovered {
   z-index: 30;
@@ -455,36 +465,54 @@ input[type='password']::-ms-clear {
   color: var(--event-muted);
 }
 
-.provider-calendar .fc .schedule-event.fc-timegrid-event:hover,
-.provider-calendar .fc .schedule-event-hovered {
-  z-index: 40;
-  height: auto !important;
-  min-height: 120px;
-  box-shadow: var(--shadow-floating);
-  transform: translateY(-2px);
+/* Hover: keep the cell's FC-controlled box as a static anchor, but float
+   the inner card out as a popover centered on the anchor — so it grows
+   outward in every direction and is sized to fit its text content.
+   Suppressed while the event is being dragged, resized, or rendered as a
+   drag mirror so reschedule operations show the cell at its real size. */
+.provider-calendar .fc .schedule-event.fc-timegrid-event:hover:not(.fc-event-dragging):not(.fc-event-resizing):not(.fc-event-mirror),
+.provider-calendar .fc .schedule-event-hovered:not(.fc-event-dragging):not(.fc-event-resizing):not(.fc-event-mirror) {
+  z-index: 420 !important;
+  overflow: visible !important;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
-.provider-calendar .fc .fc-timegrid-event.fc-event:hover .fc-event-main {
-  height: auto !important;
+.provider-calendar .fc .fc-timegrid-event.fc-event:hover:not(.fc-event-dragging):not(.fc-event-resizing):not(.fc-event-mirror) .fc-event-main {
   overflow: visible;
 }
 
-.provider-calendar .fc .schedule-event:hover .schedule-event-card,
-.provider-calendar .fc .schedule-event-hovered .schedule-event-card {
-  padding: 10px 12px;
+.provider-calendar .fc .schedule-event:hover:not(.fc-event-dragging):not(.fc-event-resizing):not(.fc-event-mirror) .schedule-event-card,
+.provider-calendar .fc .schedule-event-hovered:not(.fc-event-dragging):not(.fc-event-resizing):not(.fc-event-mirror) .schedule-event-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* Width hugs the content, capped so very long lines wrap into a popover. */
+  width: max-content;
+  max-width: 320px;
+  min-width: 200px;
+  height: auto;
+  min-height: 0;
+
+  padding: 12px 14px;
+  gap: 5px;
   justify-content: flex-start;
-  gap: 4px;
-  min-height: 100%;
+
+  background: var(--event-bg);
+  border: 1px solid var(--event-border);
+  border-left: 3px solid var(--event-accent);
+  border-radius: 14px;
+  box-shadow:
+    0 18px 40px -10px hsl(var(--foreground) / 0.28),
+    0 6px 16px -4px hsl(var(--foreground) / 0.14);
+  transition: box-shadow 160ms ease, max-width 160ms ease, padding 160ms ease;
 }
 
-.provider-calendar .fc .schedule-event:hover .schedule-event-title,
-.provider-calendar .fc .schedule-event:hover .schedule-event-subtitle,
-.provider-calendar .fc .schedule-event-hovered .schedule-event-title,
-.provider-calendar .fc .schedule-event-hovered .schedule-event-subtitle {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: initial;
-}
+/* Title/subtitle keep their initial single-line + ellipsis treatment even
+   inside the hover popover; the popover just grows wide enough to fit them. */
 
 .provider-calendar .fc .schedule-event:hover .schedule-event-time,
 .provider-calendar .fc .schedule-event:hover .schedule-event-status,

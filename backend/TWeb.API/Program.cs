@@ -59,4 +59,7 @@ using (var db = new ServiceContext())  db.Database.Migrate();
 using (var db = new ProviderContext()) db.Database.Migrate();
 using (var db = new BookingContext())  db.Database.Migrate();
 
+// Insert demo data on a fresh database (idempotent — skips if Users already exist).
+TWeb.API.DbSeeder.Seed();
+
 app.Run();
