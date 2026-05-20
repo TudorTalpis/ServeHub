@@ -69,7 +69,7 @@ const ProviderPage = () => {
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <h1 className="font-display text-2xl sm:text-3xl font-bold text-white drop-shadow-sm">{provider.name}</h1>
                     {provider.sponsored && <Badge className="bg-accent text-accent-foreground border-0 rounded-full px-2.5 text-xs">Sponsored</Badge>}
-                    {provider.featured && <Badge className="bg-primary/10 text-primary border border-primary/30 rounded-full px-2.5 text-xs">Featured</Badge>}
+                    {provider.featured && <Badge className="bg-primary text-primary-foreground border-0 rounded-full px-2.5 text-xs">Featured</Badge>}
                   </div>
                   <div className="mt-3 max-w-3xl rounded-2xl border border-border/30 bg-card/82 p-3 shadow-card backdrop-blur-sm sm:p-4">
                     <p className="text-sm leading-relaxed text-foreground/95">{provider.description}</p>

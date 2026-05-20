@@ -157,7 +157,7 @@ function SectionHeader({ title, className = "", badge }: { title: string; classN
     <div className={`flex items-center gap-3 mb-6 ${className}`}>
       <h2 className="font-display text-xl font-bold sm:text-2xl text-foreground">{title}</h2>
       {badge && (
-        <span className="text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+        <span className="text-[10px] font-semibold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground shadow-sm">
           {badge}
         </span>
       )}

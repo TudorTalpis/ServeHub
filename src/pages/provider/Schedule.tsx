@@ -58,10 +58,10 @@ interface BookingEventData {
 }
 
 const STATUS_BADGE_CLASS: Record<BookingStatus, string> = {
-  PENDING: "bg-warning/15 text-warning border-warning/30",
-  CONFIRMED: "bg-primary/15 text-primary border-primary/30",
-  COMPLETED: "bg-success/15 text-success border-success/30",
-  CANCELLED: "bg-destructive/15 text-destructive border-destructive/30",
+  PENDING: "bg-warning text-warning-foreground border-transparent",
+  CONFIRMED: "bg-primary text-primary-foreground border-transparent",
+  COMPLETED: "bg-success text-success-foreground border-transparent",
+  CANCELLED: "bg-destructive text-destructive-foreground border-transparent",
 };
 
 const FILTERS: Array<{ value: CalendarFilter; label: string }> = [

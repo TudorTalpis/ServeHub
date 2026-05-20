@@ -1,6 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { useI18n } from "@/store/useI18n";
-import { Zap } from "lucide-react";
+import { Power } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -13,10 +13,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-6xl px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-                <Zap className="h-3.5 w-3.5 text-white" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent shadow-sm shadow-primary/30">
+                <Power className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
               </div>
-              <span className="font-display text-sm font-bold text-foreground">PageON</span>
+              <span className="font-display text-sm font-bold text-foreground">
+                Page<span className="text-primary">ON</span>
+              </span>
             </div>
             <p className="text-xs text-muted-foreground">{t("footer.copy")}</p>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">

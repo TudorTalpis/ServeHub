@@ -45,7 +45,7 @@ cd TWeb.API && dotnet run
 |----------|-----------|
 | Framework | ASP.NET Core 10 |
 | ORM | Entity Framework Core |
-| Database | SQLite (dev) / PostgreSQL (prod) |
+| Database | PostgreSQL 16 (Npgsql + EF Core) |
 | API Docs | Swagger/OpenAPI |
 
 ### Dev Tooling
@@ -154,28 +154,28 @@ TWeb/
 
 ## 🗄️ Database
 
-### Development (SQLite)
-The backend uses SQLite by default (`TWeb.API/tweb.db`).
+The backend uses **PostgreSQL 16** exclusively, via Npgsql + Entity Framework Core. There is no SQLite or other database option.
 
-### Production (PostgreSQL)
 ```bash
-# Start PostgreSQL + pgAdmin
+# Start PostgreSQL (+ optional pgAdmin under 'tools' profile)
 npm run db:up
 
 # Stop containers
 npm run db:down
 
-# Remove volumes
+# Remove volumes and wipe data
 npm run db:reset
 
-# View logs
+# View PostgreSQL logs
 npm run db:logs
 
 # Open psql shell
 npm run db:shell
 ```
 
-pgAdmin available at: `http://localhost:5050` (under `tools` profile)
+Copy `.env.example` → `.env` and adjust credentials before running `db:up`.
+
+pgAdmin available at `http://localhost:5050` — start with `docker compose --profile tools up -d`.
 
 ## 📡 API Integration
 

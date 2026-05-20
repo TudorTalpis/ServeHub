@@ -41,7 +41,7 @@ export function ProviderCard({ provider }: { provider: ProviderProfile }) {
                 <Badge className="border-0 bg-accent text-accent-foreground text-[9px] px-2 py-0 h-4.5 rounded-full font-semibold">Sponsored</Badge>
             )}
             {provider.featured && (
-                <Badge className="bg-card/80 backdrop-blur-sm text-primary border border-primary/30 text-[9px] px-2 py-0 h-4.5 rounded-full font-semibold">Featured</Badge>
+                <Badge className="bg-primary text-primary-foreground border-0 text-[9px] px-2 py-0 h-4.5 rounded-full font-semibold">Featured</Badge>
             )}
           </div>
 

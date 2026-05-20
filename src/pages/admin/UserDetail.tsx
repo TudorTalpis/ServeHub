@@ -14,10 +14,10 @@ import { toast } from "@/hooks/use-toast";
 const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
 const ROLE_COLORS: Record<Role, string> = {
-  ADMIN: "bg-purple-500/15 text-purple-500 border-purple-500/30",
-  PROVIDER: "bg-blue-500/15 text-blue-500 border-blue-500/30",
-  USER: "bg-green-500/15 text-green-500 border-green-500/30",
-  GUEST: "bg-gray-500/15 text-gray-500 border-gray-500/30",
+  ADMIN: "bg-purple-600 text-white border-transparent",
+  PROVIDER: "bg-blue-600 text-white border-transparent",
+  USER: "bg-green-600 text-white border-transparent",
+  GUEST: "bg-gray-500 text-white border-transparent",
 };
 
 const AdminUserDetail = () => {

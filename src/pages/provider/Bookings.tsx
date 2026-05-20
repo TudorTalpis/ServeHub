@@ -65,10 +65,10 @@ function getTrendDelta(series: number[]) {
 }
 
 const statusStyles: Record<string, string> = {
-  PENDING: "bg-warning/10 text-warning",
-  CONFIRMED: "bg-primary/10 text-primary",
-  CANCELLED: "bg-destructive/10 text-destructive",
-  COMPLETED: "bg-success/10 text-success",
+  PENDING: "bg-warning text-warning-foreground",
+  CONFIRMED: "bg-primary text-primary-foreground",
+  CANCELLED: "bg-destructive text-destructive-foreground",
+  COMPLETED: "bg-success text-success-foreground",
 };
 
 const statusColors: Record<string, string> = {

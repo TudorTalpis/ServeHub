@@ -12,7 +12,7 @@ import {
   Grid3X3,
   Settings,
   RotateCcw,
-  Zap,
+  Power,
   Sun,
   Moon,
 } from "lucide-react";
@@ -74,11 +74,11 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary">
-            <Zap className="h-4 w-4 text-white" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-md shadow-primary/30 transition-transform group-hover:scale-105">
+            <Power className="h-4 w-4 text-white" strokeWidth={2.5} />
           </div>
           <span className="hidden sm:inline font-display text-lg font-bold text-foreground tracking-tight">
-            Serve<span className="text-primary">Hub</span>
+            Page<span className="text-primary">ON</span>
           </span>
         </Link>
 
